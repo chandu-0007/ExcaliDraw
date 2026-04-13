@@ -1,0 +1,19 @@
+{
+  "name": "@repo/db",
+  "version": "1.0.0",
+  "description": "",
+  "exports" :{
+     "./client" : "./src/client.ts"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^7.7.0",
+    "dotenv": "^17.4.1",
+    "prisma": "^7.7.0"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "ws-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -b",
+    "start": "node dist/index.js",
+    "dev": "pnpm run build && pnpm run start"
+  },
+  "dependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "socket.io": "^4.8.3"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
