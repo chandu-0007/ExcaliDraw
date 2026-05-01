@@ -13,7 +13,7 @@ export function middleware(request: NextRequest) {
   ) {
     return NextResponse.next();
   }
-
+   console.log(token); 
   const publicRoutes = ['/', '/signin', '/signup'];
   const isPublic = publicRoutes.includes(pathname);
 

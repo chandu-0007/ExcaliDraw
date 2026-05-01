@@ -36,11 +36,11 @@ router.post("/signup" , async (req  : Request, res : Response ) =>{
       }})
       if(!jwtSecret) return res.status(500).json({message : "Internal server error"})
       const token = jwt.sign({  id : user.id }, jwtSecret)
-      res.cookie("token", token, { httpOnly: true })  
       res.status(200).json({
          message : "User signed in successfully" , 
          username : user.username  , 
-         id : user.id   
+         id : user.id  , 
+         token : token  
       })
    }catch(err){
     res.status(500).json({
@@ -51,7 +51,7 @@ router.post("/signup" , async (req  : Request, res : Response ) =>{
 
 //signin router 
 
-router.post("/singin" , async(req : Request , res : Response) =>{
+router.post("/signin" , async(req : Request , res : Response) =>{
    const data = req.body ; 
     const dataparse = UserSignin.safeParse(data) ; 
     if(!dataparse.success){
@@ -70,11 +70,11 @@ router.post("/singin" , async(req : Request , res : Response) =>{
       if(passwordcheck){
              if(!jwtSecret)  return res.status(500).json({message : "Internal server is error "})
              const token = jwt.sign({id : finduser.id }  ,jwtSecret)
-             res.cookie("token" , token , {httpOnly : true })
              res.status(200).json({
              message : "User signed in successfully" , 
              username : finduser.username  , 
-             id : finduser.id   
+             id : finduser.id , 
+             token : token  
       })
       }else{
           res.status(401).json({

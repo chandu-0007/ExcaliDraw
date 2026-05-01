@@ -1,12 +1,12 @@
 "use client"
-import { useContext, createContext, useState, Dispatch, SetStateAction } from "react";
+import {createContext, useState, Dispatch, SetStateAction } from "react";
 type contextType = {
     UserName: string,
     id: string,
-    SetUserDetails: Dispatch<SetStateAction<UserType>>
+    SetUserInfo: (username : string , id : string )=> void ;
 }
 
-type UserType = {
+export type UserType = {
     UserName: string,
     id: string,
 }
@@ -17,7 +17,15 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         UserName: "",
         id: ""
     })
-    return <UserContext.Provider value={{ UserName: UserDetails.UserName, id: UserDetails.id, SetUserDetails }}>
+    function SetUserInfo(username  : string , id : string  ){
+       if(username == null || id == null ) return ; 
+       SetUserDetails({
+        UserName : username , 
+         id : id 
+       })
+       return ; 
+    }
+    return <UserContext.Provider value={{ UserName:UserDetails.UserName, id: UserDetails.id, SetUserInfo  }}>
         {children}
     </UserContext.Provider>
 }

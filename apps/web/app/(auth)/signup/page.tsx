@@ -2,8 +2,8 @@
 import axios from "axios" 
 import { useState } from "react"
 export default function Register(){
-    const [user , SetUser] = useState<{UserName : string , password : string }>({
-        UserName : "" , 
+    const [user , SetUser] = useState<{username : string , password : string }>({
+        username : "" , 
         password : ""
     }) 
     const [error , SetError] = useState<String | null>(null) ; 
@@ -11,20 +11,17 @@ export default function Register(){
        SetUser({...user , [target.target.name]: target.target.value})
     }
     const OnSubmit = async () =>{
-        console.log(user.UserName , user.password) 
+        console.log(user.username , user.password) 
         try{
-          const response = await axios.put("http://localhost:3003/signup" , user , {
-            withCredentials: true 
-          })
-          console.log(response.data)
-          if(response.status){
+          const response = await axios.post("api/signup" , user )
+          console.log(response.data)    
+          if(response.status == 200 ){
             alert(response.data.messae) ; 
           }else {
             SetError(response.data.message)
           }
         }catch(err){
             console.log(err)
-            SetError("Internal server error")
         }
     }
     return (
@@ -37,10 +34,12 @@ export default function Register(){
                     <h3> Sign UP </h3>
                     <label>Full Name </label>
                     <input  
-                    value={user.UserName} name="UserName" 
+                    type="string"
+                    value={user.username} name="username" 
                     onChange={SetOnchange}></input>
-                    <label>Password </label>
+                    <label>Create Password </label>
                     <input  
+                    type="string"
                     value={user.password} name="password" 
                     onChange={SetOnchange}></input>
                     <button 
@@ -48,6 +47,8 @@ export default function Register(){
                     className=" text-center m-1.5 pointer-cursor hover:text-lg ">
                         Submit
                     </button>
+                    {error && <p
+                    className="text-red text-md "> {error}</p>}
                  </div>
              </div>
          </div>
