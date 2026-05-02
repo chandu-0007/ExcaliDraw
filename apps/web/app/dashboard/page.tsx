@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect , useState  } from "react";
 import { useSocket } from "../Context-API/UseSocket";
 
 export default function DashBoard() {
@@ -25,6 +25,36 @@ export default function DashBoard() {
       socket.off("connect");
     };
   }, [socket]);
-
-  return <p>Dashboard Page</p>;
+  const SendMessage = ()=>{
+    console.log(text); 
+    console.log("function called ")
+    socket?.emit("message" , text) ; 
+    Settext("")
+  }
+  const [text ,Settext] = useState<string>(""); 
+  const [messages , Setmessages] = useState<string[]>([]) ; 
+  const SetOnchange = (t : React.ChangeEvent<HTMLInputElement>)=>{
+     Settext(t.target.value) ; 
+  }
+  socket?.on("message" , (data)=> {
+    Setmessages([...messages , data]) ; 
+  })
+  return <>
+    <div> 
+      <h2>Drawing Board </h2> 
+      <input 
+       type="string" 
+       name="text" 
+       value={text} 
+       onChange={SetOnchange}
+      ></input> 
+      <button 
+       onClick={SendMessage}
+      >Send</button> 
+      {messages.length !=0 && <div>
+          {messages.map((each)=> 
+          <p>{each}</p>)}
+         </div>}
+    </div>
+  </>;
 }

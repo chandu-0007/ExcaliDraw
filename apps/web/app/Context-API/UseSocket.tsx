@@ -2,26 +2,28 @@
 
 import { useState, createContext, useContext, useRef } from "react";
 import { io, Socket } from "socket.io-client";
-
 type SocketContextType = {
   socket: Socket | null;
-  connect: () => void;
+  connect: () => void; 
   disconnect: () => void;
 };
 
 const SocketContext = createContext<SocketContextType | null>(null);
 
-export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
+export const SocketProvider = ({ children  , token }: { children: React.ReactNode , token : string }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const socketRef = useRef<Socket | null>(null);
 
-  const connect = () => {
+  const connect = async () => {
     if (socketRef.current) return;
-
+    if (!token) return;
     const s = io("http://localhost:8000", {
       withCredentials: true,
-      transports: ["websocket"]
-    });
+      transports: ["websocket"] ,   
+      auth :{
+        token : token
+      }
+    } );
 
     socketRef.current = s;
     setSocket(s);
