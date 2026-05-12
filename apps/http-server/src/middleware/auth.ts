@@ -29,7 +29,6 @@ const auth = (
       message: "Authentication token missing",
     });
   }
-
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
 

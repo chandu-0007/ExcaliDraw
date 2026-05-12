@@ -7,7 +7,6 @@ import {prisma} from "@repo/db/client"
 import bcrypt from "bcrypt"
 import auth from "../middleware/auth"
 dotenv.config() 
-
 const router : express.Router = express.Router() 
 const jwtSecret = process.env.JWT_SECRET 
 
