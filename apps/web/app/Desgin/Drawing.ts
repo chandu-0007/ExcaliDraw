@@ -1,4 +1,4 @@
-export const  DrawLine = (ctx : CanvasRenderingContext2D | null | undefined ,oldx: number , oldy : number , newx : number , newy :number  , isDrawing : boolean , color : string) => {
+export const  Drawing = (ctx : CanvasRenderingContext2D | null | undefined ,oldx: number , oldy : number , newx : number , newy :number  , isDrawing : boolean , color : string) => {
     if(ctx == null || ctx == undefined || !isDrawing){
         return ; 
     }

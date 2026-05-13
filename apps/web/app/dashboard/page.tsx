@@ -1,6 +1,8 @@
 "use client";
 import { useRef, useState, useEffect, MouseEvent } from "react"
 import { Rectangle } from "../Desgin/Rectangle"
+import {Drawing}  from "../Desgin/Drawing"
+import { DrawLine } from "../Desgin/DrawLine";
 export default function DashBoard() {
   const [isDrawing, SetisDrawing] = useState<boolean>(false);
   const colors = ["black", "red", "blue", "yellow", "green"] as const;
@@ -36,7 +38,8 @@ export default function DashBoard() {
     ctx.clearRect(0, 0, canvasRef.current?.width, canvasRef.current.height);
     ctx.fillStyle = "white"
     ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height)
-    Rectangle(ctx, points.x, points.y, x2, y2, isDrawing,Color);
+    if(DrawingObject === "Rectangle")Rectangle(ctx, points.x, points.y, x2, y2, isDrawing,Color);
+    else DrawLine(ctx, points.x, points.y, x2, y2, isDrawing, Color) ;
   }
   const getMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
     if (!isDrawing) return;
@@ -45,7 +48,16 @@ export default function DashBoard() {
     const ctx = canvasRef.current?.getContext("2d");
     const newX = e.clientX - react.left;
     const newY = e.clientY - react.top;
-    Draw(ctx, newX, newY);
+    if(DrawingObject === "Rectangle") Draw(ctx, newX, newY);
+    else if(DrawingObject === "pencil"){
+      Drawing(ctx,points.x , points.y , newX , newY , isDrawing , Color) ; 
+      SetPoints({
+        x : newX , 
+        y : newY 
+      })
+    }else{
+      Draw(ctx,newX ,newY);
+    }
   }
 
   const colorClasses : Record<(typeof colors)[number], string> = {
@@ -60,10 +72,18 @@ export default function DashBoard() {
     <>
       <div className="text-center text-lg pt-4 ">Drawign Board</div>
       <div className="flex  relative justify-center items-center">
-        <div className= "absolute inset-0 bg-white  max-w-20 max-h-5 flex-col justitfy-center items-center gap-1.5 ">
-          <button className="text-black">Rectangle</button>
+        <div className= "absolute inset-0 bg-white  max-w-20 h-auto  rounded-md text-center  ml-2 p-0.5  flex-col justitfy-center items-center  pag-y-2 ">
+          <button className="text-black bg-neutral-600 w-full rounded-md " 
+          name = "Rectangle"
+           onClick={(e)=>SetDrawingObject(e.currentTarget.name)}>Rectangle</button>
+          <button className="text-black bg-neutral-600 mt-4  w-full rounded-md " 
+          name = "pencil"
+         onClick={(e)=>SetDrawingObject(e.currentTarget.name)}>pencil</button>
+          <button className="text-black bg-neutral-600 mt-4  w-full rounded-md " 
+          name = "Line"
+         onClick={(e)=>SetDrawingObject(e.currentTarget.name)}>Line</button>
         </div>
-        <div className="absolute mt-20 left-0 top-0 w-24 h-1/2 bg-neutral-100 text-black rounded-md flex flex-col gap-2 p-2">
+        <div className="absolute mt-40 left-0 top-0 w-24 h-1/2 bg-neutral-100 text-black rounded-md flex flex-col gap-2 p-2">
           <p className="text-sm font-medium">Choose color</p>
           {colors.map((color, index) => {
             return (
