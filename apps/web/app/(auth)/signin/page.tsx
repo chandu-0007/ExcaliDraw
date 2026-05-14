@@ -3,13 +3,11 @@ import axios from "axios"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useContext } from "react" 
-import UserContext from "../../Context-API/UserContext"
 export default function Login(){
     const [user , SetUser] = useState<{username : string , password : string }>({
         username : "" , 
         password : ""
     }) 
-    const {SetUserInfo} = useContext(UserContext)!; 
     const router = useRouter()
     const [error , SetError] = useState<String | null>(null) ; 
     const SetOnchange = (target : React.ChangeEvent<HTMLInputElement>)=>{
@@ -22,7 +20,6 @@ export default function Login(){
           console.log(response.data)    
           if(response.status == 200 ){
             alert(response.data.messae) ; 
-            SetUserInfo(response.data.username , response.data.id)
             router.push("/dashboard"); 
           }else {
             SetError(response.data.message)

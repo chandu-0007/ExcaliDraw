@@ -31,7 +31,7 @@ router.post("/signup" , async (req  : Request, res : Response ) =>{
       const user = await prisma.user.create({data:{
          username , 
          password : hashpassword,  
-         updateAt : new Date() 
+         updatedAt : new Date() 
       }})
       if(!jwtSecret) return res.status(500).json({message : "Internal server error"})
       const token = jwt.sign({  id : user.id }, jwtSecret)
@@ -94,30 +94,31 @@ router.use(auth)
 //create room 
 router.post("/create-room/:roomname",async( req : Request , res : Response ) =>{
    const  RoomName :  string | undefined   = Array.isArray(req.params.roomname) ? req.params.roomname[0] : req.params.roomname ; 
+   console.log(RoomName); 
    if(!RoomName) return res.status(401).json({message :"Invalid room name "})
-   const user = req.user ;
+  const user = req.user as { id: string };
    try{
       const create_room = await prisma.room.create({
          data : {
             name : RoomName , 
-            adminId :user as string, 
-            updateAt : new Date() 
+            adminId :user.id, 
+            updatedAt : new Date() 
          }
       })
 
-      await prisma.member.create({
-         data : {
-            userId : user as string , 
-            roomId: create_room.id  
-         }
-      })
+      // await prisma.member.create({
+      //    data : {
+      //       userId : user.id , 
+      //       roomId: create_room.id  
+      //    }
+      // })
       return res.status(200).json({
          message : "Room Created Succesfuuly" , 
          id : create_room.id 
       })
-   }catch(err){
+   }catch(err : any ){
          return res.status(500).json({
-            message : "Internal server error"
+            message : err.message
          })
    }
 })

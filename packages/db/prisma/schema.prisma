@@ -14,7 +14,7 @@ model User {
   photo       String?
 
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @default(now()) @updatedAt
+  updatedAt   DateTime  @default(now())@updatedAt
 
   // Rooms created by this user
   rooms       Room[]    @relation("RoomAdmin")
@@ -28,7 +28,7 @@ model Room {
   name        String
 
   // Entire canvas stored as JSON
-  elements    Json      @default("[]")
+  elements    Json     @default("[]")
 
   // room owner
   adminId     String
