@@ -4,7 +4,37 @@ import { Rectangle } from "../Desgin/Rectangle"
 import {Drawing}  from "../Desgin/Drawing"
 import { DrawLine } from "../Desgin/DrawLine";
 export default function DashBoard() {
+
+  type DrawRectType = { 
+    type :  "Rectangle" ,
+    Startx : number , 
+    Starty  : number , 
+    endX : number , 
+    endY : number , 
+    color : string 
+  }
+  type DrawLineType = { 
+    type :  "Line" ,
+    Startx : number , 
+    Starty  : number , 
+    endX : number , 
+    endY : number , 
+    color : string 
+  }
+
+  type DrawPencilType = { 
+     type : "Pencil"  
+     points : {
+      x :number , 
+      y :number 
+     }[] , 
+     color  : string 
+  }
+  type ElementsType = 
+    DrawRectType | DrawLineType | DrawPencilType
+  
   const [isDrawing, SetisDrawing] = useState<boolean>(false);
+  const [elements, SetElements] = useState<ElementsType[]>([]);
   const colors = ["black", "red", "blue", "yellow", "green"] as const;
   //staring point
   const [points, SetPoints] = useState<{ x: number, y: number }>({
@@ -16,13 +46,27 @@ export default function DashBoard() {
   useEffect(() => {
     const ctx = canvasRef.current?.getContext("2d");
     if (ctx != null && canvasRef.current != null) {
-      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
-      ctx.fillStyle = "white"
-      ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height)
+    ClearCanvas(ctx); 
     }
   }, [])
-
-
+  
+  const ClearCanvas = (ctx: CanvasRenderingContext2D | null | undefined) => {
+    if (ctx == null || canvasRef.current == null) return;
+    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    for (const element of elements) {
+      if (element.type === "Rectangle") {
+        Rectangle(ctx, element.Startx , element.Starty, element.endX, element.endY, true, element.color);
+      }else if (element.type === "Line") {
+           DrawLine(ctx, element.Startx, element.Starty, element.endX, element.endY, true, element.color);
+      }
+      else if(element.type == "Pencil")
+       for(const point of element.points){
+           Drawing(ctx, point.x , point.y , point.x , point.y , true , element.color);   
+      }
+    }
+  }
   const getMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
     const react = canvasRef.current?.getBoundingClientRect();
     if (!react) return;
@@ -33,14 +77,7 @@ export default function DashBoard() {
     SetisDrawing(true);
   }
   const [DrawingObject , SetDrawingObject] = useState<string>("Rectangle") ; 
-  const Draw = (ctx: CanvasRenderingContext2D | null | undefined, x2: number, y2: number) => {
-    if (!ctx || !isDrawing || canvasRef.current == null) return;
-    ctx.clearRect(0, 0, canvasRef.current?.width, canvasRef.current.height);
-    ctx.fillStyle = "white"
-    ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height)
-    if(DrawingObject === "Rectangle")Rectangle(ctx, points.x, points.y, x2, y2, isDrawing,Color);
-    else DrawLine(ctx, points.x, points.y, x2, y2, isDrawing, Color) ;
-  }
+
   const getMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
     if (!isDrawing) return;
     const react = canvasRef.current?.getBoundingClientRect();
@@ -48,18 +85,40 @@ export default function DashBoard() {
     const ctx = canvasRef.current?.getContext("2d");
     const newX = e.clientX - react.left;
     const newY = e.clientY - react.top;
-    if(DrawingObject === "Rectangle") Draw(ctx, newX, newY);
+    if(DrawingObject === "Rectangle" || DrawingObject === "Line") {
+      ClearCanvas(ctx) ; 
+      if(DrawingObject === "Rectangle") Rectangle(ctx , points.x , points.y , newX  , newY , isDrawing , Color)  ; 
+      else DrawLine(ctx , points.x , points.y , newX  , newY , isDrawing , Color) ; 
+    }
     else if(DrawingObject === "pencil"){
       Drawing(ctx,points.x , points.y , newX , newY , isDrawing , Color) ; 
       SetPoints({
         x : newX , 
         y : newY 
       })
-    }else{
-      Draw(ctx,newX ,newY);
     }
   }
+   
 
+  const getMouseUp = (e : MouseEvent<HTMLCanvasElement>) => {
+     SetisDrawing(false) ; 
+     if(canvasRef == null || canvasRef.current == null  ) return ; 
+     let newX = e.clientX  - canvasRef.current?.getBoundingClientRect().left ; 
+     let newY = e.clientY -  canvasRef.current?.getBoundingClientRect().top  ;
+     if(DrawingObject === "Rectangle" ||  DrawingObject === "Line"){
+     SetElements ( prevs => [
+        ...prevs , {
+          type : DrawingObject, 
+          Startx : points.x  , 
+          Starty : points.y , 
+          endX : newX , 
+          endY : newY , 
+          color : Color  
+        }
+      ]
+     )
+    }
+  }
   const colorClasses : Record<(typeof colors)[number], string> = {
     red: "bg-red-500",
     blue: "bg-blue-500",
@@ -102,7 +161,7 @@ export default function DashBoard() {
           height={600}
           onMouseDown={getMouseDown}
           onMouseMove={getMouseMove}
-          onMouseUp={() => SetisDrawing(false)}
+          onMouseUp={getMouseUp}
         ></canvas>
       </div>
     </>

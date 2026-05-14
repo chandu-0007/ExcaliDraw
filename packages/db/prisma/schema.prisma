@@ -1,37 +1,57 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url     = env("DATABASE_URL") 
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String   @id @default(uuid())
-  username  String   @unique 
-  password  String
-  photo     String? 
-  createdAt DateTime @default(now())
-  updateAt  DateTime
-  rooms     room[]
+  id          String    @id @default(uuid())
+  username    String    @unique
+  password    String
+  photo       String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+
+  // Rooms created by this user
+  rooms       Room[]    @relation("RoomAdmin")
+
+  memberships Member[]
 }
 
-model room {
-   id      String  @id  @default(uuid()) 
-   name    String   
-   AdminId   String 
-   CreatedAt DateTime @default(now())
-   admin     User  @relation(fields: [AdminId] , references: [id]) 
-   
+model Room {
+  id          String    @id @default(uuid())
+
+  name        String
+
+  // Entire canvas stored as JSON
+  elements    Json      @default("[]")
+
+  // room owner
+  adminId     String
+  admin       User      @relation("RoomAdmin", fields: [adminId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime   @default(now()) @updatedAt
+
+  members     Member[]
 }
 
-model Message {
-  id   String  @id @default(uuid()) 
-  text String 
+model Member {
+  id          String    @id @default(uuid())
+
+  roomId      String
+  userId      String
+
+  room        Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  joinedAt    DateTime  @default(now())
+
+  // Prevent duplicate joins
+  @@unique([roomId, userId])
 }
