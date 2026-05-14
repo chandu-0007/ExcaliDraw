@@ -155,7 +155,7 @@ export default function DashBoard() {
 
     {/* Top Toolbar */}
     <div className="absolute left-1/2 top-2 -translate-x-1/2  z-50">
-      <div className="bg-[#2b2b2b] border border-neutral-700 shadow-2xl rounded-2xl p-3 flex flex gap-3">
+      <div className="bg-[#2b2b2b] border border-neutral-700 shadow-2xl rounded-2xl p-3 flex gap-3">
 
         <button
           name="Rectangle"

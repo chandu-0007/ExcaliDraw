@@ -13,10 +13,10 @@ const SocketContext = createContext<SocketContextType | null>(null);
 export const SocketProvider = ({ children  , token }: { children: React.ReactNode , token : string }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const socketRef = useRef<Socket | null>(null);
-
   const connect = async () => {
     if (socketRef.current) return;
     if (!token) return;
+    console.log("socket connection is called ")
     const s = io("http://localhost:8000", {
       withCredentials: true,
       transports: ["websocket"] ,   
@@ -24,7 +24,20 @@ export const SocketProvider = ({ children  , token }: { children: React.ReactNod
         token : token
       }
     } );
+  s.on("connect", () => {
+    console.log("CONNECTED");
+    console.log("Socket ID:", s.id);
+    console.log("connected:", s.connected);
+  });
 
+  s.on("connect_error", (err) => {
+    console.log("CONNECT ERROR");
+    console.log(err.message);
+  });
+
+  s.on("disconnect", (reason) => {
+    console.log("DISCONNECTED:", reason);
+  });
     socketRef.current = s;
     setSocket(s);
   };
@@ -35,6 +48,7 @@ export const SocketProvider = ({ children  , token }: { children: React.ReactNod
     socketRef.current.disconnect();
     socketRef.current = null;
     setSocket(null);
+   
   };
 
   return (

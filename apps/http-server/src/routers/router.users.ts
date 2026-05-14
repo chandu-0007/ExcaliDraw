@@ -95,11 +95,33 @@ router.use(auth)
 router.post("/create-room/:roomname",async( req : Request , res : Response ) =>{
    const  RoomName :  string | undefined   = Array.isArray(req.params.roomname) ? req.params.roomname[0] : req.params.roomname ; 
    if(!RoomName) return res.status(401).json({message :"Invalid room name "})
-   const user = req.user ; 
+   const user = req.user ;
    try{
-      
-   }catch(err){
+      const create_room = await prisma.room.create({
+         data : {
+            name : RoomName , 
+            adminId :user as string, 
+            updateAt : new Date() 
+         }
+      })
 
+      await prisma.member.create({
+         data : {
+            userId : user as string , 
+            roomId: create_room.id  
+         }
+      })
+      return res.status(200).json({
+         message : "Room Created Succesfuuly" , 
+         id : create_room.id 
+      })
+   }catch(err){
+         return res.status(500).json({
+            message : "Internal server error"
+         })
    }
 })
+
+
+
 export default router  ; 

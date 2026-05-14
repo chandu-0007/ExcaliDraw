@@ -127,6 +127,9 @@ importers:
       '@types/jsonwebtoken':
         specifier: ^9.0.10
         version: 9.0.10
+      dotenv:
+        specifier: ^17.4.1
+        version: 17.4.1
       jsonwebtoken:
         specifier: ^9.0.3
         version: 9.0.3

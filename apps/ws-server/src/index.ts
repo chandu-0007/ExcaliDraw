@@ -1,11 +1,13 @@
 import {Server, Socket} from "socket.io"
 import jwt from "jsonwebtoken"
+import dotenv from "dotenv"
+dotenv.config() ; 
 const io = new Server( 8000 ) 
 io.use((socket  , next) =>{
     const token = socket.handshake.auth.token ; 
     if(!token) return next(new Error("Authentication error"))
    try {
-    const jwtSceret  = "asdfghjkl" 
+    const jwtSceret  =  process.env.JWT_SECRET as string ; 
     const decoded = jwt.verify(token , jwtSceret) as { id: string } ; 
     if(!decoded) return next(new Error("Authentication error")) 
     socket.data.userId = decoded.id; 
