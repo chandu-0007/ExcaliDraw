@@ -1,57 +1,205 @@
-"use client"
-import axios from "axios" 
-import { useState } from "react"
-export default function Register(){
-    const [user , SetUser] = useState<{username : string , password : string }>({
-        username : "" , 
-        password : ""
-    }) 
-    const [error , SetError] = useState<String | null>(null) ; 
-    const SetOnchange = (target : React.ChangeEvent<HTMLInputElement>)=>{
-       SetUser({...user , [target.target.name]: target.target.value})
+"use client";
+
+import axios from "axios";
+import Link from "next/link";
+import { motion, useMotionValue, useSpring } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+export default function Signup() {
+  const router = useRouter();
+
+  const [user, SetUser] = useState({
+    username: "",
+    password: "",
+  });
+
+  const [error, SetError] = useState<string | null>(null);
+
+  // Mouse Glow Animation
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const smoothX = useSpring(mouseX, {
+    stiffness: 100,
+    damping: 20,
+  });
+
+  const smoothY = useSpring(mouseY, {
+    stiffness: 100,
+    damping: 20,
+  });
+
+  const handleMouseMove = (
+    e: React.MouseEvent<HTMLDivElement>
+  ) => {
+    mouseX.set(e.clientX - 200);
+    mouseY.set(e.clientY - 200);
+  };
+
+  const SetOnchange = (
+    target: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    SetUser({
+      ...user,
+      [target.target.name]: target.target.value,
+    });
+  };
+
+  const OnSubmit = async () => {
+    try {
+      const response = await axios.post(
+        "/api/signup",
+        user
+      );
+
+      if (response.status === 200) {
+        router.push("/login");
+      } else {
+        SetError(response.data.message);
+      }
+    } catch (err: any) {
+      SetError(
+        err.response?.data?.message || "Something went wrong"
+      );
     }
-    const OnSubmit = async () =>{
-        console.log(user.username , user.password) 
-        try{
-          const response = await axios.post("api/signup" , user )
-          console.log(response.data)    
-          if(response.status == 200 ){
-            alert(response.data.messae) ; 
-          }else {
-            SetError(response.data.message)
-          }
-        }catch(err){
-            console.log(err)
-        }
-    }
-    return (
-        <>
-         <div className=" bg-white h-screen w-screen flex justify-center items-center "> 
-             <div 
-             className=" bg-neutral-600 p-3 ">
-                 <div 
-                 className="flex-col "> 
-                    <h3> Sign UP </h3>
-                    <label>Full Name </label>
-                    <input  
-                    type="string"
-                    value={user.username} name="username" 
-                    onChange={SetOnchange}></input>
-                    <label>Create Password </label>
-                    <input  
-                    type="string"
-                    value={user.password} name="password" 
-                    onChange={SetOnchange}></input>
-                    <button 
-                    onClick={()=>OnSubmit()}
-                    className=" text-center m-1.5 pointer-cursor hover:text-lg ">
-                        Submit
-                    </button>
-                    {error && <p
-                    className="text-red text-md "> {error}</p>}
-                 </div>
-             </div>
-         </div>
-        </>
-    )
+  };
+
+  return (
+    <div
+      onMouseMove={handleMouseMove}
+      className="relative flex h-screen w-screen items-center justify-center overflow-hidden bg-black text-white"
+    >
+      {/* Mouse Glow */}
+      <motion.div
+        style={{
+          x: smoothX,
+          y: smoothY,
+        }}
+        className="pointer-events-none absolute h-[400px] w-[400px] rounded-full bg-white/10 blur-3xl"
+      />
+
+      {/* Grid Background */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:40px_40px]" />
+
+      {/* Noise Texture */}
+      <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+
+      {/* Signup Card */}
+      <motion.div
+        initial={{
+          opacity: 0,
+          y: 40,
+          scale: 0.95,
+        }}
+        animate={{
+          opacity: 1,
+          y: 0,
+          scale: 1,
+        }}
+        transition={{
+          duration: 0.5,
+        }}
+        className="relative z-10 w-[92%] max-w-md rounded-3xl border border-white/10 bg-white/[0.03] p-8 backdrop-blur-xl"
+      >
+        {/* Logo */}
+        <div className="mb-8 flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-xl">
+            ✏️
+          </div>
+
+          <div>
+            <h1 className="text-2xl font-bold tracking-wide">
+              Excalidraw
+            </h1>
+
+            <p className="text-sm text-neutral-400">
+              Collaborative Workspace
+            </p>
+          </div>
+        </div>
+
+        {/* Heading */}
+        <div className="mb-7">
+          <h2 className="text-3xl font-bold">
+            Create Account
+          </h2>
+
+          <p className="mt-2 text-sm text-neutral-400">
+            Start drawing and collaborating in realtime.
+          </p>
+        </div>
+
+        {/* Username */}
+        <div className="mb-5">
+          <label className="mb-2 block text-sm text-neutral-300">
+            Username
+          </label>
+
+          <input
+            type="text"
+            value={user.username}
+            name="username"
+            placeholder="Enter username"
+            onChange={SetOnchange}
+            className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-white outline-none transition-all duration-300 placeholder:text-neutral-600 focus:border-white/30 focus:bg-white/[0.05]"
+          />
+        </div>
+        
+        {/* Password */}
+        <div className="mb-4">
+          <label className="mb-2 block text-sm text-neutral-300">
+            Password
+          </label>
+
+          <input
+            type="password"
+            value={user.password}
+            name="password"
+            placeholder="Enter password"
+            onChange={SetOnchange}
+            className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-white outline-none transition-all duration-300 placeholder:text-neutral-600 focus:border-white/30 focus:bg-white/[0.05]"
+          />
+        </div>
+
+        {/* Error */}
+        {error && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mb-4 text-sm text-red-400"
+          >
+            {error}
+          </motion.p>
+        )}
+
+        {/* Submit Button */}
+        <motion.button
+          whileHover={{
+            scale: 1.02,
+          }}
+          whileTap={{
+            scale: 0.98,
+          }}
+          onClick={OnSubmit}
+          className="w-full rounded-xl border border-white/10 bg-white py-3 font-semibold text-black transition-all duration-300 hover:bg-neutral-200"
+        >
+          Create Account
+        </motion.button>
+
+        {/* Login Link */}
+        <div className="mt-5 text-center">
+          <p className="text-sm text-neutral-500">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="font-medium text-white transition hover:text-neutral-300"
+            >
+              Sign In
+            </Link>
+          </p>
+        </div>
+      </motion.div>
+    </div>
+  );
 }

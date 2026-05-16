@@ -106,12 +106,6 @@ router.post("/create-room/:roomname",async( req : Request , res : Response ) =>{
          }
       })
 
-      // await prisma.member.create({
-      //    data : {
-      //       userId : user.id , 
-      //       roomId: create_room.id  
-      //    }
-      // })
       return res.status(200).json({
          message : "Room Created Succesfuuly" , 
          id : create_room.id 
