@@ -1,0 +1,27 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+RUN corepack enable
+
+
+COPY package.json .
+COPY pnpm-lock.yaml .
+COPY pnpm-workspace.yaml .
+COPY turbo.json .
+
+
+COPY packages ./packages
+
+COPY apps/http-server ./apps/http-server
+
+RUN pnpm install
+
+
+RUN pnpm run generate:db
+
+# Build backend only
+RUN pnpm run build 
+
+EXPOSE 3003
+CMD ["pnpm", "start:backend"]
