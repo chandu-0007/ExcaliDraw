@@ -3,44 +3,19 @@ import { useRef, useState, useEffect, MouseEvent } from "react"
 import { Rectangle } from "../lib/Rectangle"
 import { Drawing } from "../lib/Drawing"
 import { DrawLine } from "../lib/DrawLine";
-import { start } from "repl";
-import { number } from "framer-motion";
+import  {generateUUID} from "../lib/generateUUID"
+import EarseElement from "../lib/EaserEelement";
+import type {
+  DrawRectType,
+  ElementsType
+} from "@repo/common";
+import { ClearCanvas } from "../lib/ClearCanvas";
 export default function DashBoard() {
-
-  type DrawRectType = {
-    id: string,
-    type: "Rectangle",
-    Startx: number,
-    Starty: number,
-    endX: number,
-    endY: number,
-    color: string
-  }
-  type DrawLineType = {
-    id: string,
-    type: "Line",
-    Startx: number,
-    Starty: number,
-    endX: number,
-    endY: number,
-    color: string
-  }
-
-  type DrawPencilType = {
-    id: string,
-    type: "pencil"
-    points: {
-      x: number,
-      y: number
-    }[],
-    color: string
-  }
-  type ElementsType =
-    DrawRectType | DrawLineType | DrawPencilType
   const [isDrawing, SetisDrawing] = useState<boolean>(false);
-  const [elements, SetElements] = useState<ElementsType[]>([]);
+  const [elements, SetElements] = useState<ElementsType[] >([]);
   const [SelectElement, setSelectedElement] = useState<DrawRectType | null>(null);
   const colors = ["black", "red", "blue", "yellow", "green"] as const;
+  const earserRef = useRef<boolean>(false) ;
   //staring point
   const pointsRef = useRef<{ x: number, y: number }>({ x: 0, y: 0 })
   const [Color, SetColor] = useState<string>("black");
@@ -48,7 +23,7 @@ export default function DashBoard() {
   useEffect(() => {
     const ctx = canvasRef.current?.getContext("2d");
     if (ctx != null && canvasRef.current != null) {
-      ClearCanvas(ctx);
+      ClearCanvas(canvasRef , elements);
     }
   }, [elements])
 
@@ -61,7 +36,7 @@ export default function DashBoard() {
     const ctx = canvasRef.current.getContext("2d");
 
     if (ctx) {
-      ClearCanvas(ctx);
+      ClearCanvas(canvasRef , elements);
     }
   }, []);
 
@@ -69,47 +44,6 @@ export default function DashBoard() {
   const SetPencils = useRef<{ x: number, y: number }[]>([]);
 
   const dragRef = useRef({ x: 0, y: 0 });
-
-  const ClearCanvas = (ctx: CanvasRenderingContext2D | null | undefined) => {
-    if (ctx == null || canvasRef.current == null) return;
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    ctx.fillStyle = "#1e1e1e";
-    ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    for (const element of elements) {
-      if (element.type === "Rectangle") {
-        Rectangle(ctx, element.Startx, element.Starty, element.endX, element.endY, true, element.color);
-      } else if (element.type === "Line") {
-        DrawLine(ctx, element.Startx, element.Starty, element.endX, element.endY, true, element.color);
-      }
-      else if (element.type == "pencil") {
-        const points = element.points;
-        for (let i = 1; i < points.length; i++) {
-          const prves = points[i - 1];
-          const curr = points[i];
-          if (!prves || !curr) continue;
-          Drawing(ctx, prves.x, prves.y, curr.x, curr.y, true, element.color)
-        }
-      }
-
-    }
-  }
-
-  function generateUUID() { // Public Domain/MIT
-    var d = new Date().getTime();//Timestamp
-    var d2 = ((typeof performance !== 'undefined') && performance.now && (performance.now() * 1000)) || 0;//Time in microseconds since page-load or 0 if unsupported
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-      var r = Math.random() * 16;//random number between 0 and 16
-      if (d > 0) {//Use timestamp until depleted
-        r = (d + r) % 16 | 0;
-        d = Math.floor(d / 16);
-      } else {//Use microseconds since page-load if supported
-        r = (d2 + r) % 16 | 0;
-        d2 = Math.floor(d2 / 16);
-      }
-      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-    });
-  }
-
 
   const [DrawingObject, SetDrawingObject] = useState<string>("Rectangle");
 
@@ -164,20 +98,22 @@ export default function DashBoard() {
       )
     );
   };
-
+ 
   const getMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
     const react = canvasRef.current?.getBoundingClientRect();
     if (!react) return;
+    if(DrawingObject === "earser"){
+      earserRef.current = true ; 
+    }
     if (DrawingObject === "select") {
       const mouseX = e.clientX - react.left;
       const mouseY = e.clientY - react.top;
-
       handleSelect(mouseX, mouseY);
-
       dragRef.current = {
         x: mouseX,
         y: mouseY,
       };
+    
       return;
     }
     pointsRef.current = {
@@ -192,19 +128,27 @@ export default function DashBoard() {
     }
     SetisDrawing(true);
   }
+
   const getMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
     const react = canvasRef.current?.getBoundingClientRect();
     if (!react) return;
     const newX = e.clientX - react.left;
     const newY = e.clientY - react.top;
     const ctx = canvasRef.current?.getContext("2d");
+    if(DrawingObject  === "earser" && earserRef.current == true){
+      handleSelect(newX,newY); 
+      if(SelectElement != null) {
+        SetElements(EarseElement(elements , SelectElement.id)) ; 
+      }
+      return ; 
+    }
     if (SelectElement != null) {
       MoveObject(newX, newY);
     }
     if (!isDrawing) return;
 
     if (DrawingObject === "Rectangle" || DrawingObject === "Line") {
-      ClearCanvas(ctx);
+      ClearCanvas(canvasRef , elements);
       if (DrawingObject === "Rectangle") Rectangle(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, isDrawing, Color);
       else DrawLine(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, isDrawing, Color);
     }
@@ -226,6 +170,7 @@ export default function DashBoard() {
       setSelectedElement(null);
       return;
     }
+    earserRef.current   = false; 
     SetisDrawing(false);
     if (canvasRef == null || canvasRef.current == null) return;
     let newX = e.clientX - canvasRef.current?.getBoundingClientRect().left;
@@ -331,6 +276,20 @@ export default function DashBoard() {
           >
             Pencil
           </button>
+
+          <button
+            name="earser"
+            onClick={(e) => SetDrawingObject(e.currentTarget.name)}
+            className={`
+            px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200
+            ${DrawingObject === "earser"
+                ? "bg-white text-black"
+                : "bg-[#3a3a3a] text-white hover:bg-[#4a4a4a]"
+              }
+          `}
+          >
+            earser
+          </button>
         </div>
       </div>
 
@@ -359,7 +318,8 @@ export default function DashBoard() {
       {/* Canvas */}
       <canvas
         ref={canvasRef}
-        className="w-screen h-screen bg-[#1e1e1e] cursor-crosshair"
+        className={`w-screen h-screen bg-[#1e1e1e]  ${DrawingObject === "select" ? "cursor-pointer" :
+           DrawingObject === "earser"? "cursor-cell" : "cursor-crosshair"}`}
         onMouseDown={getMouseDown}
         onMouseMove={getMouseMove}
         onMouseUp={getMouseUp}
