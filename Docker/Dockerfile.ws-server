@@ -20,8 +20,8 @@ RUN pnpm install
 
 RUN pnpm run generate:db
 
-# Build backend only
 RUN pnpm run build 
 
 EXPOSE 8000
-CMD ["pnpm", "dev"]
+
+CMD ["pnpm", "start:ws"]

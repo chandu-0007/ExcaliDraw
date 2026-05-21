@@ -9,9 +9,9 @@ import {
 
 import { useParams } from "next/navigation";
 
-import { Rectangle } from "../../Desgin/Rectangle";
-import { Drawing } from "../../Desgin/Drawing";
-import { DrawLine } from "../../Desgin/DrawLine";
+import { Rectangle } from "../../lib/Rectangle";
+import { Drawing } from "../../lib/Drawing";
+import { DrawLine } from "../../lib/DrawLine";
 
 import { useSocket } from "../../Context-API/UseSocket";
 

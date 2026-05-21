@@ -123,8 +123,7 @@ io.on("connection", (socket: Socket) => {
 
     }
   );
-
-
+  
   socket.on("disconnect", () => {
 
     console.log(
