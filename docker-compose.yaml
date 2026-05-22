@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "Chandu@6622005"
+      POSTGRES_DB: mydb
+
+    volumes:
+      - excali-draw-volume:/var/lib/postgresql
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.frontend
+
+    ports:
+      - "3000:3000"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  backend:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.backend
+
+    environment:
+      PORT: 3003
+      jwtSecret: adasdasdfadsasdfjh
+      DATABASE_URL: postgresql://postgres:Chandu%406622005@postgres:5432/mydb
+
+    ports:
+      - "3003:3003"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  excali-draw-volume:
