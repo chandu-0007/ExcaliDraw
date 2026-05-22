@@ -10,10 +10,12 @@ import type {
   ElementsType
 } from "@repo/common";
 import { ClearCanvas } from "../lib/ClearCanvas";
+import { CheckInLine } from "../lib/CheckInLine";
+import { CheckInRect } from "../lib/CheckInRect";
 export default function DashBoard() {
   const [isDrawing, SetisDrawing] = useState<boolean>(false);
   const [elements, SetElements] = useState<ElementsType[] >([]);
-  const [SelectElement, setSelectedElement] = useState<DrawRectType | null>(null);
+  const [SelectElement, setSelectedElement] = useState<ElementsType| null>(null);
   const colors = ["black", "red", "blue", "yellow", "green"] as const;
   const earserRef = useRef<boolean>(false) ;
   //staring point
@@ -51,17 +53,16 @@ export default function DashBoard() {
     for (const element of elements) {
       if (
         element.type === "Rectangle") {
-        const minX = Math.min(element.Startx, element.endX);
-        const maxX = Math.max(element.Startx, element.endX);
-
-        const minY = Math.min(element.Starty, element.endY);
-        const maxY = Math.max(element.Starty, element.endY);
-
-        if(x >= minX && x <=maxX &&  y >= minY && y <= maxY){
+        if(CheckInRect(element , x , y)){
         setSelectedElement(element);
         return ; 
         }
         console.log(element?.id);
+      }else if(element.type === "Line"){
+        if(CheckInLine(element , x , y )){
+          setSelectedElement(element) ; 
+          return ; 
+        }
       }
     }
     setSelectedElement(null);
@@ -145,8 +146,7 @@ export default function DashBoard() {
     if (SelectElement != null) {
       MoveObject(newX, newY);
     }
-    if (!isDrawing) return;
-
+    if(!isDrawing) return;
     if (DrawingObject === "Rectangle" || DrawingObject === "Line") {
       ClearCanvas(canvasRef , elements);
       if (DrawingObject === "Rectangle") Rectangle(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, isDrawing, Color);
