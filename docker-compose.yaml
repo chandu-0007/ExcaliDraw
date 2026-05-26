@@ -35,7 +35,7 @@ services:
 
     environment:
       PORT: 3003
-      jwtSecret: adasdasdfadsasdfjh
+      JWT_SECRET: adasdasdfadsasdfjh
       DATABASE_URL: postgresql://postgres:Chandu%406622005@postgres:5432/mydb
 
     ports:
@@ -44,6 +44,22 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+   
+  ws-server: 
+     build: 
+      context: .
+      dockerfile: Docker/Dockerfile.ws-server 
+
+     ports : 
+      - "8000:8000"
+
+     environment: 
+       JWT_SECRET: adasdasdfadsasdfjh
+
+     depends_on:
+       postgres : 
+        condition: service_healthy 
+
 
 volumes:
   excali-draw-volume:

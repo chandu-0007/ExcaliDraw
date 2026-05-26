@@ -7,7 +7,7 @@ export async function POST(req: Request) {
 
     // Call Express backend
     const backendRes = await axios.post(
-      "http://localhost:3003/signup",
+      "http://backend:3003/signup",
       body
     );
 

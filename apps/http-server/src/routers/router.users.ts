@@ -33,7 +33,7 @@ router.post("/signup" , async (req  : Request, res : Response ) =>{
          password : hashpassword,  
          updatedAt : new Date() 
       }})
-      if(!jwtSecret) return res.status(500).json({message : "Internal server error"})
+      if(!jwtSecret) return res.status(500).json({message : "jwt secert is missing "})
       const token = jwt.sign({  id : user.id }, jwtSecret)
       res.status(200).json({
          message : "User signed in successfully" , 
@@ -67,7 +67,7 @@ router.post("/signin" , async(req : Request , res : Response) =>{
       })
       const passwordcheck= await bcrypt.compare(password,finduser.password) ; 
       if(passwordcheck){
-             if(!jwtSecret)  return res.status(500).json({message : "Internal server is error "})
+             if(!jwtSecret)  return res.status(500).json({message : "jwt secert is missing "})
              const token = jwt.sign({id : finduser.id }  ,jwtSecret)
              res.status(200).json({
              message : "User signed in successfully" , 
