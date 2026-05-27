@@ -1,159 +1,213 @@
-# Turborepo starter
+# ExcaliDraw
 
-This Turborepo starter is maintained by the Turborepo core team.
+A **real-time collaborative drawing application** inspired by Excalidraw, built as a full-stack TypeScript monorepo. It features a Next.js frontend, a REST HTTP backend, and a dedicated WebSocket server — all orchestrated with Turborepo and deployable via Docker Compose.
 
-## Using this example
+---
 
-Run the following command:
+##  Architecture Overview
 
-```sh
-npx create-turbo@latest
+```
+ExcaliDraw/
+├── apps/
+│   ├── web/           # Next.js frontend (canvas drawing UI)
+│   ├── http-server/   # REST API backend (auth, rooms, shapes)
+│   └── ws-server/     # WebSocket server (real-time sync)
+├── packages/
+│   ├── db/            # Prisma ORM + PostgreSQL schema
+│   ├── ui/            # Shared React component library
+│   ├── eslint-config/ # Shared ESLint configuration
+│   └── typescript-config/ # Shared tsconfig
+├── Docker/            # Per-service Dockerfiles
+├── docker-compose.yaml
+├── turbo.json
+└── pnpm-workspace.yaml
 ```
 
-## What's inside?
+### Services
 
-This Turborepo includes the following packages/apps:
+| Service | Port | Description |
+|---|---|---|
+| `web` | `3000` | Next.js frontend — drawing canvas UI |
+| `http-server` (backend) | `3003` | REST API — auth, room management |
+| `ws-server` | `8000` | WebSocket server — real-time collaboration |
+| `postgres` | `5432` | PostgreSQL database |
 
-### Apps and Packages
+---
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+## 🛠️ Tech Stack
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+- **Frontend:** Next.js, React, TypeScript, CSS
+- **Backend:** Node.js, TypeScript, Express (HTTP server)
+- **WebSocket:** Node.js WebSocket server for real-time updates
+- **Database:** PostgreSQL with Prisma ORM
+- **Monorepo:** Turborepo + pnpm workspaces
+- **Containerization:** Docker + Docker Compose
+- **Language:** 100% TypeScript (89.6% TS, 6.1% CSS, 4.3% JS)
 
-### Utilities
+---
 
-This Turborepo has some additional tools already setup for you:
+##  Prerequisites
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+- **Node.js** >= 18
+- **pnpm** 9.0.0 (`npm install -g pnpm@9.0.0`)
+- **Docker & Docker Compose** (for containerized setup)
 
-### Build
+---
 
-To build all apps and packages, run the following command:
+##  Getting Started
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+### 1. Clone the repository
 
-```sh
-cd my-turborepo
-turbo build
+```bash
+git clone https://github.com/chandu-0007/ExcaliDraw.git
+cd ExcaliDraw
 ```
 
-Without global `turbo`, use your package manager:
+### 2. Install dependencies
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
+```bash
+pnpm install
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+### 3. Configure environment variables
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+Create `.env` files in the relevant app directories. At minimum you'll need:
 
-```sh
-turbo build --filter=docs
+**`apps/http-server/.env`**
+```env
+PORT=3003
+JWT_SECRET=your_jwt_secret
+DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/mydb
 ```
 
-Without global `turbo`:
-
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+**`apps/ws-server/.env`**
+```env
+JWT_SECRET=your_jwt_secret
 ```
 
-### Develop
+### 4. Generate the Prisma client
 
-To develop all apps and packages, run the following command:
+```bash
+pnpm run generate:db
+```
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+### 5. Run in development mode
 
-```sh
-cd my-turborepo
+```bash
+pnpm run dev
+# or with global turbo:
 turbo dev
 ```
 
-Without global `turbo`, use your package manager:
+This starts all apps concurrently. To target a specific app:
 
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
+```bash
+turbo dev --filter=web          # frontend only
+turbo dev --filter=http-server  # backend only
+turbo dev --filter=ws-server    # websocket server only
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+---
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+## Running with Docker Compose
 
-```sh
-turbo dev --filter=web
+The easiest way to spin up the entire stack:
+
+```bash
+docker-compose up --build
 ```
 
-Without global `turbo`:
+This starts:
+- PostgreSQL (with a health check)
+- Frontend on [http://localhost:3000](http://localhost:3000)
+- HTTP backend on [http://localhost:3003](http://localhost:3003)
+- WebSocket server on [ws://localhost:8000](ws://localhost:8000)
 
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+To stop:
+
+```bash
+docker-compose down
 ```
 
-### Remote Caching
+To stop and remove volumes:
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+```bash
+docker-compose down -v
+```
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+---
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+## 📦 Available Scripts
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+Run from the repository root:
 
-```sh
-cd my-turborepo
+| Script | Description |
+|---|---|
+| `pnpm run dev` | Start all apps in development mode |
+| `pnpm run build` | Build all apps and packages |
+| `pnpm run lint` | Lint all packages |
+| `pnpm run check-types` | TypeScript type checking across all packages |
+| `pnpm run format` | Format all `.ts`, `.tsx`, `.md` files with Prettier |
+| `pnpm run generate:db` | Generate the Prisma client from the schema |
+| `pnpm run start:backend` | Start the HTTP server in production mode |
+| `pnpm run start:web` | Start the Next.js frontend in production mode |
+| `pnpm run start:ws` | Start the WebSocket server in production mode |
+
+---
+
+## 🏃 Production Startup
+
+After building (`pnpm run build`), start each service individually:
+
+```bash
+pnpm run start:backend   # HTTP server on port 3003
+pnpm run start:ws        # WebSocket server on port 8000
+pnpm run start:web       # Next.js frontend on port 3000
+```
+
+---
+
+## 📁 Packages
+
+### `packages/db`
+Prisma schema and database client. Shared across the http-server and ws-server apps.
+
+### `packages/ui`
+Shared React component library consumed by the `web` app.
+
+### `packages/eslint-config`
+Shared ESLint rules (includes `eslint-config-next` and `eslint-config-prettier`).
+
+### `packages/typescript-config`
+Shared `tsconfig.json` base configurations for all packages and apps.
+
+---
+
+## 🔧 Turborepo & Caching
+
+This project uses [Turborepo](https://turborepo.dev) for task orchestration and caching.
+
+**Remote Caching (optional)** — share build caches with your team via Vercel:
+
+```bash
 turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
 turbo link
 ```
 
-Without global `turbo`:
+For more on caching: [Turborepo Remote Caching docs](https://turborepo.dev/docs/core-concepts/remote-caching)
 
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
+---
 
-## Useful Links
+## 🤝 Contributing
 
-Learn more about the power of Turborepo:
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit your changes: `git commit -m 'Add some feature'`
+4. Push to the branch: `git push origin feature/your-feature`
+5. Open a Pull Request
 
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+---
+
+## 📄 License
+
+This project is open source. See the repository for license details.
