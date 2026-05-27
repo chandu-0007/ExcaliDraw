@@ -92,15 +92,12 @@ router.post("/signin" , async(req : Request , res : Response) =>{
 router.use(auth)
 
 //create room 
-router.post("/create-room/:roomname",async( req : Request , res : Response ) =>{
-   const  RoomName :  string | undefined   = Array.isArray(req.params.roomname) ? req.params.roomname[0] : req.params.roomname ; 
-   console.log(RoomName); 
-   if(!RoomName) return res.status(401).json({message :"Invalid room name "})
+router.post("/create-room",async( req : Request , res : Response ) =>{ 
   const user = req.user as { id: string };
    try{
       const create_room = await prisma.room.create({
          data : {
-            name : RoomName , 
+            name : user.id, 
             adminId :user.id, 
             updatedAt : new Date() 
          }
@@ -116,7 +113,5 @@ router.post("/create-room/:roomname",async( req : Request , res : Response ) =>{
          })
    }
 })
-
-
 
 export default router  ; 

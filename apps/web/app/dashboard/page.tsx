@@ -5,8 +5,10 @@ import { Drawing } from "../lib/Drawing"
 import { DrawLine } from "../lib/DrawLine";
 import  {generateUUID} from "../lib/generateUUID"
 import EarseElement from "../lib/EaserEelement";
+import axios from "axios";
+import { cookies } from "next/headers";
+import { useRouter } from "next/router";
 import type {
-  DrawRectType,
   ElementsType
 } from "@repo/common";
 import { ClearCanvas } from "../lib/ClearCanvas";
@@ -18,6 +20,10 @@ export default function DashBoard() {
   const [SelectElement, setSelectedElement] = useState<ElementsType| null>(null);
   const colors = ["black", "red", "blue", "yellow", "green"] as const;
   const earserRef = useRef<boolean>(false) ;
+
+  //for routing 
+  const router =  useRouter(); 
+
   //staring point
   const pointsRef = useRef<{ x: number, y: number }>({ x: 0, y: 0 })
   const [Color, SetColor] = useState<string>("black");
@@ -213,8 +219,39 @@ export default function DashBoard() {
     SetisDrawing(false);
     SetDrawingObject("select");
   }
+
+    const OnClickShare = async ()=>{
+     try{
+        const cookieStore = await cookies();
+        const token = cookieStore.get("token")?.value;
+        const response = await axios.post("http://backend:3003/create-room" , {
+            withCredentials: true, 
+            cookies : {
+                token : token 
+            } , 
+        } )
+        const data = response.data  ; 
+        if(data.Status == 200){
+              console.log(data); 
+              router.push(`/${data.id}`)
+        }
+     }catch(err){
+         console.log(err); 
+     }
+    }
+  
   return (
+
     <div className="w-screen h-screen bg-[#1e1e1e] overflow-hidden flex">
+
+
+      {/* share button  */}
+      <div  className ="absolute  right-0 top-2 z-50 ">
+          <button className="bg-cyan-600 rounded-xl hover:scale-50 "
+          onClick={OnClickShare}>
+                Share
+          </button>
+      </div>
 
       {/* Top Toolbar */}
       <div className="absolute left-1/2 top-2 -translate-x-1/2  z-50">
