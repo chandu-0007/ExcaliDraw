@@ -92,17 +92,29 @@ router.post("/signin" , async(req : Request , res : Response) =>{
 router.use(auth)
 
 //create room 
-router.post("/create-room",async( req : Request , res : Response ) =>{ 
+router.post("/room",async( req : Request , res : Response ) =>{ 
   const user = req.user as { id: string };
+  const elements = req.body ; 
+  if(!elements) return res.status(404).json({message : "elements are not found "})
    try{
+      const shareroom  =  await prisma.room.findUnique({
+         where : { 
+            id : user.id 
+         }
+      })
+
+      if(shareroom != null) return res.status(200).json({
+         message : "room has Created Successfully " , 
+         id : shareroom.id 
+      })
       const create_room = await prisma.room.create({
          data : {
             name : user.id, 
             adminId :user.id, 
-            updatedAt : new Date() 
+            updatedAt : new Date(),
+            elements : elements
          }
       })
-
       return res.status(200).json({
          message : "Room Created Succesfuuly" , 
          id : create_room.id 
@@ -113,5 +125,6 @@ router.post("/create-room",async( req : Request , res : Response ) =>{
          })
    }
 })
+
 
 export default router  ; 
