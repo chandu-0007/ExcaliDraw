@@ -6,6 +6,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: "Chandu@6622005"
       POSTGRES_DB: mydb
+    ports: 
+     - "5432:5432" 
 
     volumes:
       - excali-draw-volume:/var/lib/postgresql
@@ -53,8 +55,10 @@ services:
      ports : 
       - "8000:8000"
 
-     environment: 
+     environment:
+       PORT: 8000
        JWT_SECRET: adasdasdfadsasdfjh
+       DATABASE_URL: postgresql://postgres:Chandu%406622005@postgres:5432/mydb
 
      depends_on:
        postgres : 

@@ -54,7 +54,7 @@ export default function Signup() {
       );
 
       if (response.status === 200) {
-        router.push("/login");
+        router.push("/dashboard");
       } else {
         SetError(response.data.message);
       }

@@ -48,7 +48,7 @@ io.on("connection", (socket: Socket) => {
 
 
   socket.on("join-room", async ({ roomId } : {roomId : string }) => {
-
+    console.log("join room is called ")
     try {
 
       const room = await prisma.room.findUnique({
