@@ -86,7 +86,6 @@ export default function DashBoard() {
 
     const dx = mouseX - dragRef.current.x;
     const dy = mouseY - dragRef.current.y;
-
     dragRef.current = {
       x: mouseX,
       y: mouseY,
@@ -130,10 +129,10 @@ export default function DashBoard() {
       y: e.clientY - react.top
     }
     if (DrawingObject === "pencil") {
-      SetPencils.current.push({
+      SetPencils.current = [{
         x: e.clientX - react.left,
         y: e.clientY - react.top
-      })
+      }]
     }
     SetisDrawing(true);
   }

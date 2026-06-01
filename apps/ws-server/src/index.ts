@@ -89,10 +89,10 @@ io.on("connection", (socket: Socket) => {
 
   });
 
-  socket.on("share-element", ({ roomId, element }) => {
-     console.log(element) ; 
-    socket.to(roomId).emit("receive-element", {
-      element,
+  socket.on("share-elements", ({ roomId, elements }) => {
+     console.log(elements) ; 
+    socket.to(roomId).emit("receive-elements", {
+      elements,
     });
 
   });
