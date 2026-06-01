@@ -20,4 +20,4 @@ jobs:
         with: 
          context: .
          push: true
-         tags: ${{ secrets.DOCKERHUB_USERNAME }}/CollabCanvas:latest  
+         tags: ${{ secrets.DOCKERHUB_USERNAME }}/collabcanvas:latest  
