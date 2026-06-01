@@ -10,9 +10,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Say hello
-        run: echo "Hello from GitHub Actions! CollabCanvas build starting..."
-
-      - name: Check Node version
-        run: node --version
+      - name: Login into the docker  hub 
+        uses: docker/Login-actions@v4 
+        with: 
+         username: ${{ secrets.DOCKERHUB_USERNAME }}
+         password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: build the image and push 
+        uses: docker/build-push-actions@v4 
+        with : 
+         content: .
+         push: true
+         tag: ${{ secrets.DOCKERHUB_USERNAME }}/CollabCanvas:latest  
