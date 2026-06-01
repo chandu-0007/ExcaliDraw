@@ -1,17 +1,14 @@
 services:
   postgres:
     image: postgres
-
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: "Chandu@6622005"
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: mydb
-    ports: 
-     - "5432:5432" 
-
+    ports:
+      - "5432:5432"
     volumes:
       - excali-draw-volume:/var/lib/postgresql
-
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -22,10 +19,9 @@ services:
     build:
       context: .
       dockerfile: Docker/Dockerfile.frontend
-
+    image: ${DOCKERHUB_USERNAME}/collabcanvas-web:latest
     ports:
       - "3000:3000"
-
     depends_on:
       postgres:
         condition: service_healthy
@@ -34,36 +30,31 @@ services:
     build:
       context: .
       dockerfile: Docker/Dockerfile.backend
-
+    image: ${DOCKERHUB_USERNAME}/collabcanvas-backend:latest
     environment:
       PORT: 3003
-      JWT_SECRET: adasdasdfadsasdfjh
-      DATABASE_URL: postgresql://postgres:Chandu%406622005@postgres:5432/mydb
-
+      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: ${DATABASE_URL}
     ports:
       - "3003:3003"
-
     depends_on:
       postgres:
         condition: service_healthy
-   
-  ws-server: 
-     build: 
+
+  ws-server:
+    build:
       context: .
-      dockerfile: Docker/Dockerfile.ws-server 
-
-     ports : 
+      dockerfile: Docker/Dockerfile.ws-server
+    image: ${DOCKERHUB_USERNAME}/collabcanvas-ws:latest
+    environment:
+      PORT: 8000
+      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: ${DATABASE_URL}
+    ports:
       - "8000:8000"
-
-     environment:
-       PORT: 8000
-       JWT_SECRET: adasdasdfadsasdfjh
-       DATABASE_URL: postgresql://postgres:Chandu%406622005@postgres:5432/mydb
-
-     depends_on:
-       postgres : 
-        condition: service_healthy 
-
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   excali-draw-volume:
