@@ -90,7 +90,7 @@ io.on("connection", (socket: Socket) => {
   });
 
   socket.on("share-elements", ({ roomId, elements }) => {
-     console.log(elements) ; 
+      if (!socket.rooms.has(roomId)) return;
     socket.to(roomId).emit("receive-elements", {
       elements,
     });

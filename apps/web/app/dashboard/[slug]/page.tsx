@@ -38,19 +38,17 @@ export default function Collaboration() {
 
   const { socket, connect, disconnect } = useSocket();
 
-  useEffect(() => {
-    connect();
-    if (!canvasRef.current) return;
+useEffect(() => {
+  if (!canvasRef.current) return;
+  canvasRef.current.width = window.innerWidth;
+  canvasRef.current.height = window.innerHeight;
+}, []);
 
-    canvasRef.current.width = window.innerWidth;
-    canvasRef.current.height = window.innerHeight;
 
-    const ctx = canvasRef.current.getContext("2d");
-
-    if (ctx) {
-      ClearCanvas(canvasRef, elements);
-    }
-  }, []);
+useEffect(() => {
+  connect();
+  return () => disconnect();
+}, []);
 
   useEffect(() => {
     if (!socket) return;
@@ -72,17 +70,17 @@ export default function Collaboration() {
     };
 
     socket.on("room-data", roomHandler);
-    socket.on("receive-element", receiveHandler);
+    socket.on("receive-elements", receiveHandler);
 
     return () => {
       socket.off("room-data", roomHandler);
-      socket.off("receive-element", receiveHandler);
+      socket.off("receive-elements", receiveHandler);
     };
   }, [socket]);
 
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || elements.length == 0) return;
     const timeout = setTimeout(() => {
       socket.emit("save-elements", { roomId: params.slug, elements });
     }, 2000);
@@ -149,7 +147,7 @@ export default function Collaboration() {
 
     if (DrawingObject === "select") {
       const mouseX = e.clientX - react.left;
-      const mouseY = e.clientY - react.top;
+      const mouseY = e.clientY - react.right;
       handleSelect(mouseX, mouseY);
       dragRef.current = { x: mouseX, y: mouseY };
       return;
@@ -253,8 +251,8 @@ export default function Collaboration() {
     }
     if(newElement != null){
       SetElements((prev)=> [...prev , newElement!]) ;
-      const updatedElements =  [,,,elements , newElement ] ; 
-      socket?.emit('share-elements', { roomId: params.slug , updatedElements})
+      const updatedElements =  [...elements , newElement ] ; 
+      socket?.emit('share-elements', { roomId: params.slug , elements : updatedElements})
     }
   };
 

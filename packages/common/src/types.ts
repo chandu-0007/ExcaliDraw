@@ -37,5 +37,14 @@ export const UserSignup = z.object({
     }[],
     color: string
   }
+
+  export type DrawCircle =  {
+   id : string , 
+   type: "Ellipse", 
+   centerX: number , 
+   centerY: number , 
+   radius : number , 
+   color : string 
+  }
  export type ElementsType =
-    DrawRectType | DrawLineType | DrawPencilType
+    DrawRectType | DrawLineType | DrawPencilType | DrawCircle 

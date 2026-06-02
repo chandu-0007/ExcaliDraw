@@ -14,6 +14,9 @@ import type {
 import { ClearCanvas } from "../lib/ClearCanvas";
 import { CheckInLine } from "../lib/CheckInLine";
 import { CheckInRect } from "../lib/CheckInRect";
+import { findDistance } from "../lib/findDistance";
+import { drawCircle } from "../lib/DrawCricle";
+import {CheckInCircle} from "../lib/CheckInCricle";
 
 
 export default function DashBoard() {
@@ -70,6 +73,11 @@ export default function DashBoard() {
         if (CheckInLine(element, x, y)) {
           setSelectedElement(element);
           return;
+        }
+      }else if(element.type === "Ellipse"){
+        if(CheckInCircle(element , x , y)){
+          setSelectedElement(element); 
+          return ; 
         }
       }
     }
@@ -154,10 +162,16 @@ export default function DashBoard() {
       MoveObject(newX, newY);
     }
     if (!isDrawing) return;
-    if (DrawingObject === "Rectangle" || DrawingObject === "Line") {
+  
+    if (DrawingObject === "Rectangle" || DrawingObject === "Line" || DrawingObject == "Ellipse") {
       ClearCanvas(canvasRef, elements);
       if (DrawingObject === "Rectangle") Rectangle(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, isDrawing, Color);
-      else DrawLine(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, isDrawing, Color);
+      else if(DrawingObject === "Line")DrawLine(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, isDrawing, Color);
+      else{
+        let radius = findDistance(pointsRef.current.x , pointsRef.current.y , newX , newY) ; 
+        console.log(radius) ; 
+        drawCircle( ctx ,pointsRef.current.x , pointsRef.current.y , radius,Color , "White",5) ; 
+      }
     }
     else if (DrawingObject === "pencil") {
       Drawing(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, isDrawing, Color);
@@ -195,7 +209,7 @@ export default function DashBoard() {
         }
       ]
       )
-    } else {
+    } else if(DrawingObject === "pencil") {
       SetElements(prevs => [...prevs, {
         id: generateUUID(),
         type: "pencil",
@@ -204,6 +218,17 @@ export default function DashBoard() {
       }])
 
       SetPencils.current = [];
+    }
+    else if(DrawingObject === "Ellipse"){
+      const radius = findDistance(pointsRef.current.x , pointsRef.current.y , newX , newY) ; 
+        SetElements(prevs => [...prevs , {
+          id:generateUUID() , 
+           type: "Ellipse" , 
+           centerX: pointsRef.current.x , 
+           centerY : pointsRef.current.y , 
+           radius : radius , 
+           color : Color
+        }])
     }
 
   }

@@ -2,6 +2,7 @@
  import { DrawLine } from "./DrawLine";
  import { Drawing } from "./Drawing";
   import type { ElementsType } from "@repo/common";
+import { drawCircle } from "./DrawCricle";
  export  const ClearCanvas = (canvasRef : any , elements :ElementsType[]) => {
      const ctx = canvasRef.current?.getContext("2d");
     if (ctx == null || canvasRef.current == null) return;
@@ -23,6 +24,8 @@
           Drawing(ctx, prves.x, prves.y, curr.x, curr.y, true, element.color)
         }
       }
-
+      else if(element.type === 'Ellipse'){
+        drawCircle(ctx , element.centerX , element.centerY , element.radius ,element.color , "White" , 5 ) ; 
+      }
     }
   }
