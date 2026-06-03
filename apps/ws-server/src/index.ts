@@ -45,10 +45,7 @@ io.on("connection", (socket: Socket) => {
 
   console.log("User connected:", socket.data.userId);
 
-
-
   socket.on("join-room", async ({ roomId } : {roomId : string }) => {
-    console.log("join room is called ")
     try {
 
       const room = await prisma.room.findUnique({
@@ -68,9 +65,16 @@ io.on("connection", (socket: Socket) => {
       // join socket room
       socket.join(roomId);
 
+
+      const messages = await prisma.message.findMany({where :{
+        roomId : roomId 
+      } , select :{
+          Text : true 
+      }})
       // send previous elements
       socket.emit("room-data", {
         elements: room.elements,
+        messages : messages 
       });
 
       console.log(
@@ -97,9 +101,9 @@ io.on("connection", (socket: Socket) => {
 
   });
 
-
+  
   socket.on("save-elements",async ({ roomId, elements }) => {
-
+ 
       try {
 
         await prisma.room.update({
@@ -108,7 +112,7 @@ io.on("connection", (socket: Socket) => {
           },
           data: {
             elements,
-          },
+          }
         });
 
       } catch (err) {
@@ -124,6 +128,25 @@ io.on("connection", (socket: Socket) => {
     }
   );
   
+  socket.on("send-message" , async ({  roomId , text } : { roomId : string , text : string })=> {
+      //frist find the user in room 
+      try{ 
+          await prisma.message.create( {
+            data : {
+              roomId : roomId , 
+              userId : socket.data.userId as string , 
+              Text : text , 
+              updatedAt  : new Date 
+            }
+          })
+          socket.to(roomId).emit("send-message" , {text}) ;
+      }catch(err){
+        socket.emit("error", {
+          message: "Failed to save room",
+        });
+      }
+
+  } )
   socket.on("disconnect", () => {
 
     console.log(

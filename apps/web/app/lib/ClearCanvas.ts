@@ -1,6 +1,5 @@
  import { Rectangle } from "./Rectangle";
  import { DrawLine } from "./DrawLine";
- import { Drawing } from "./Drawing";
   import type { ElementsType } from "@repo/common";
 import { drawCircle } from "./DrawCricle";
  export  const ClearCanvas = (canvasRef : any , elements :ElementsType[]) => {
@@ -11,9 +10,9 @@ import { drawCircle } from "./DrawCricle";
     ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
     for (const element of elements) {
       if (element.type === "Rectangle") {
-        Rectangle(ctx, element.Startx, element.Starty, element.endX, element.endY, true, element.color);
+        Rectangle(ctx, element.Startx, element.Starty, element.endX, element.endY, true, element.color , element.strokColor , element.strokWidth);
       } else if (element.type === "Line") {
-        DrawLine(ctx, element.Startx, element.Starty, element.endX, element.endY, true, element.color);
+        DrawLine(ctx, element.Startx, element.Starty, element.endX, element.endY, true, element.color,element.strokWidth);
       }
       else if (element.type == "pencil") {
         const points = element.points;
@@ -21,11 +20,11 @@ import { drawCircle } from "./DrawCricle";
           const prves = points[i - 1];
           const curr = points[i];
           if (!prves || !curr) continue;
-          Drawing(ctx, prves.x, prves.y, curr.x, curr.y, true, element.color)
+          DrawLine(ctx, prves.x, prves.y, curr.x, curr.y, true, element.color , element.strokWidth)
         }
       }
       else if(element.type === 'Ellipse'){
-        drawCircle(ctx , element.centerX , element.centerY , element.radius ,element.color , "White" , 5 ) ; 
+        drawCircle(ctx , element.centerX , element.centerY , element.radius ,element.color , element.strokColor , element.strokWidth) ; 
       }
     }
   }

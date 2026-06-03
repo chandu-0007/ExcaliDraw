@@ -1,4 +1,4 @@
-export const  DrawLine = (ctx : CanvasRenderingContext2D | null | undefined ,oldx: number , oldy : number , newx : number , newy :number  , isDrawing : boolean , color : string) => {
+export const  DrawLine = (ctx : CanvasRenderingContext2D | null | undefined ,oldx: number , oldy : number , newx : number , newy :number  , isDrawing : boolean , color : string , StrokWidth : number) => {
     if(ctx == null || ctx == undefined || !isDrawing){
         return ; 
     }
@@ -7,5 +7,6 @@ export const  DrawLine = (ctx : CanvasRenderingContext2D | null | undefined ,old
     ctx.moveTo(oldx ,oldy);
     ctx.lineTo(newx,newy) ; 
     ctx.stroke() ; 
+    ctx.lineWidth = StrokWidth ;
     return ;  
 }

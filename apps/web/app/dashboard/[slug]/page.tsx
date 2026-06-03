@@ -11,7 +11,6 @@ import { ToolButton, Divider } from "../../components/toollButton";
 import { useParams } from "next/navigation";
 import { generateUUID } from "../../lib/generateUUID";
 import { Rectangle } from "../../lib/Rectangle";
-import { Drawing } from "../../lib/Drawing";
 import { DrawLine } from "../../lib/DrawLine";
 import { CheckInLine } from "../../lib/CheckInLine";
 import { CheckInRect } from "../../lib/CheckInRect";
@@ -20,6 +19,10 @@ import EarseElement from "../../lib/EaserEelement";
 import { useSocket } from "../../Context-API/UseSocket";
 import type { ElementsType } from "@repo/common";
 import { read } from "fs";
+import { drawCircle } from "../../lib/DrawCricle";
+import { findDistance } from "../../lib/findDistance";
+import { CheckInCircle } from "../../lib/CheckInCricle";
+import { text } from "stream/consumers";
 
 export default function Collaboration() {
   const params = useParams();
@@ -35,8 +38,9 @@ export default function Collaboration() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const earserRef = useRef<boolean>(false);
   const dragRef = useRef({ x: 0, y: 0 });
-
+  const [messages , Setmessages ] = useState<{Text : string}[]>([]) ;  
   const { socket, connect, disconnect } = useSocket();
+  const [Input , SetInput ] = useState<string>(""); 
 
 useEffect(() => {
   if (!canvasRef.current) return;
@@ -59,22 +63,27 @@ useEffect(() => {
   useEffect(() => {
     if (!socket) return;
 
-    const roomHandler = (data: { elements: ElementsType[] }) => {
-      console.log(data);
-      SetElements(data.elements || []);
+    const roomHandler = (data: { elements: ElementsType[] , messages : {Text : string }[] }) => {
+      SetElements(data.elements || []);  
+      Setmessages(data.messages || [] ) ; 
     };
-
     const receiveHandler = (data: { elements: ElementsType[] }) => {
       console.log(data);
       SetElements(data.elements);
     };
 
+    const messageshandler = (data : { text : string }) =>{
+        Setmessages( (prevs) => [...prevs,{Text : data.text}]) ; 
+        return ; 
+    }
+    socket.on("send-message" , messageshandler) ; 
     socket.on("room-data", roomHandler);
     socket.on("receive-elements", receiveHandler);
-
+    
     return () => {
       socket.off("room-data", roomHandler);
       socket.off("receive-elements", receiveHandler);
+      socket.off("send-message" , messageshandler) ; 
     };
   }, [socket]);
 
@@ -105,6 +114,11 @@ useEffect(() => {
         if (CheckInLine(element, x, y)) {
           SelectElement.current = element;
           return;
+        }
+      } else if(element.type === "Ellipse"){
+        if(CheckInCircle(element , x , y)) {
+          SelectElement.current = element ; 
+          return ; 
         }
       }
     }
@@ -201,15 +215,18 @@ useEffect(() => {
 
     if (isDrawing.current == false) return;
 
-    if (DrawingObject === "Rectangle" || DrawingObject === "Line") {
+    if (DrawingObject === "Rectangle" || DrawingObject === "Line" || DrawingObject === "Ellipse") {
       ClearCanvas(canvasRef, elements);
       if (DrawingObject === "Rectangle") {
-        Rectangle(ctx, SetPoints.current.x, SetPoints.current.y, newX, newY, true, Color);
-      } else {
-        DrawLine(ctx, SetPoints.current.x, SetPoints.current.y, newX, newY, true, Color);
+        Rectangle(ctx, SetPoints.current.x, SetPoints.current.y, newX, newY, true, Color , "White" , 3);
+      } else if(DrawingObject === "Line") {
+        DrawLine(ctx, SetPoints.current.x, SetPoints.current.y, newX, newY, true, Color , 3);
+      }else {
+          const radius = findDistance(SetPoints.current.x , SetPoints.current.y , newX , newY);
+          drawCircle(ctx , SetPoints.current.x , SetPoints.current.y,radius , Color,"White" , 3);
       }
     } else if (DrawingObject === "pencil") {
-      Drawing(ctx, SetPoints.current.x, SetPoints.current.y, newX, newY, true, Color);
+      DrawLine(ctx, SetPoints.current.x, SetPoints.current.y, newX, newY, true, Color , 3 );
       SetPencil.current.push({ x: newX, y: newY });
       SetPoints.current = { x: newX, y: newY };
     }
@@ -230,7 +247,7 @@ useEffect(() => {
     const newX = e.clientX - rect.left;
     const newY = e.clientY - rect.top;
     let newElement : ElementsType | null = null ; 
-    if (DrawingObject === "Rectangle" || DrawingObject === "Line") {
+    if (DrawingObject === "Rectangle") {
       newElement = {
           id: generateUUID(),
           type: DrawingObject,
@@ -238,16 +255,42 @@ useEffect(() => {
           Starty: SetPoints.current.y,
           endX: newX,
           endY: newY,
-          color: Color
+          color: Color  ,  
+          strokColor : "White" , 
+          strokWidth : 3 
+        }
+    }else if (DrawingObject === "Line"){
+      newElement = {
+          id: generateUUID(),
+          type: DrawingObject,
+          Startx: SetPoints.current.x,
+          Starty: SetPoints.current.y,
+          endX: newX,
+          endY: newY,
+          color: Color  ,  
+          strokWidth : 3 
         }
     } else if (DrawingObject === "pencil") {
       newElement =  {
         id: generateUUID(),
         type: DrawingObject,
-        points: SetPencil.current,
+        points: [...SetPencil.current],
         color: Color,
+        strokWidth : 3 
       }
       SetPencil.current = [];
+    }else if(DrawingObject === "Ellipse"){
+      const radius = findDistance(SetPoints.current.x , SetPoints.current.y , newX , newY )
+      newElement = {
+        id : generateUUID() , 
+        type: DrawingObject , 
+        centerX : SetPoints.current.x , 
+        centerY : SetPoints.current.y  , 
+        radius : radius , 
+        color : Color , 
+        strokColor  : "White" , 
+        strokWidth  : 3 
+      }
     }
     if(newElement != null){
       SetElements((prev)=> [...prev , newElement!]) ;
@@ -263,7 +306,11 @@ useEffect(() => {
   };
 
 
-
+  const SendMessageHandler = ()=>{
+    Setmessages((prevs) => [...prevs , {Text : Input }]) ; 
+     socket?.emit("send-message" , { roomId :params.slug , text : Input}) ; 
+     SetInput("") ; 
+  }
   return (
     <div
       className="w-screen h-screen overflow-hidden relative"
@@ -456,6 +503,32 @@ useEffect(() => {
           +
         </button>
       </div>
+       
+
+       {/* chats */}
+      <div  className="w-50  h-150 bg-neutral-500 rounded-lg absolute top-10 right-6"> 
+         <div 
+           className="flex-col"
+         >
+         <div> {messages.map((child , index) => <div 
+        key={index}>
+          <span >{child.Text}</span>
+         </div>)}
+        </div> 
+        <div> 
+          <input
+            value={Input}
+            onChange={(e) => SetInput(e.target.value)} 
+            className="text-black bg-white  "
+          ></input>
+          <button  
+          onClick={SendMessageHandler}>
+            send
+          </button>
+        </div>
+      </div>
+      </div>
+      
 
       {/* Canvas */}
       <canvas

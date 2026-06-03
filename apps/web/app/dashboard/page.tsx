@@ -1,7 +1,6 @@
 "use client";
 import { useRef, useState, useEffect, MouseEvent } from "react"
 import { Rectangle } from "../lib/Rectangle"
-import { Drawing } from "../lib/Drawing"
 import { DrawLine } from "../lib/DrawLine";
 import { generateUUID } from "../lib/generateUUID"
 import EarseElement from "../lib/EaserEelement";
@@ -23,7 +22,7 @@ export default function DashBoard() {
   const [isDrawing, SetisDrawing] = useState<boolean>(false);
   const [elements, SetElements] = useState<ElementsType[]>([]);
   const [SelectElement, setSelectedElement] = useState<ElementsType | null>(null);
-  const colors = ["black", "red", "blue", "yellow", "green"] as const;
+  const strokWidth = useRef<number>(3); 
   const earserRef = useRef<boolean>(false);
 
   //for routing 
@@ -165,16 +164,15 @@ export default function DashBoard() {
   
     if (DrawingObject === "Rectangle" || DrawingObject === "Line" || DrawingObject == "Ellipse") {
       ClearCanvas(canvasRef, elements);
-      if (DrawingObject === "Rectangle") Rectangle(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, isDrawing, Color);
-      else if(DrawingObject === "Line")DrawLine(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, isDrawing, Color);
+      if (DrawingObject === "Rectangle") Rectangle(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, isDrawing, Color ,"White" , strokWidth.current);
+      else if(DrawingObject === "Line")DrawLine(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, isDrawing, Color , strokWidth.current);
       else{
         let radius = findDistance(pointsRef.current.x , pointsRef.current.y , newX , newY) ; 
-        console.log(radius) ; 
-        drawCircle( ctx ,pointsRef.current.x , pointsRef.current.y , radius,Color , "White",5) ; 
+        drawCircle( ctx ,pointsRef.current.x , pointsRef.current.y , radius,Color,"White",strokWidth.current) ; 
       }
     }
     else if (DrawingObject === "pencil") {
-      Drawing(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, isDrawing, Color);
+      DrawLine(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, isDrawing, Color , strokWidth.current);
       pointsRef.current = {
         x: newX,
         y: newY
@@ -196,7 +194,7 @@ export default function DashBoard() {
     if (canvasRef == null || canvasRef.current == null) return;
     let newX = e.clientX - canvasRef.current?.getBoundingClientRect().left;
     let newY = e.clientY - canvasRef.current?.getBoundingClientRect().top;
-    if (DrawingObject === "Rectangle" || DrawingObject === "Line") {
+    if (DrawingObject === "Rectangle") {
       SetElements(prevs => [
         ...prevs, {
           id: generateUUID(),
@@ -205,19 +203,35 @@ export default function DashBoard() {
           Starty: pointsRef.current.y,
           endX: newX,
           endY: newY,
-          color: Color
+          color: Color , 
+          strokWidth : strokWidth.current ,
+          strokColor : "White"
         }
       ]
       )
+    }else if(DrawingObject === "Line"){
+         SetElements(prevs => [
+        ...prevs, {
+          id: generateUUID(),
+          type: DrawingObject,
+          Startx: pointsRef.current.x,
+          Starty: pointsRef.current.y,
+          endX: newX,
+          endY: newY,
+          color: Color , 
+          strokWidth : strokWidth.current ,
+        }
+      ])
+
     } else if(DrawingObject === "pencil") {
+      console.log(SetPencils.current);
       SetElements(prevs => [...prevs, {
         id: generateUUID(),
         type: "pencil",
         points: SetPencils.current,
-        color: Color
+        color: Color , 
+        strokWidth : strokWidth.current
       }])
-
-      SetPencils.current = [];
     }
     else if(DrawingObject === "Ellipse"){
       const radius = findDistance(pointsRef.current.x , pointsRef.current.y , newX , newY) ; 
@@ -227,7 +241,9 @@ export default function DashBoard() {
            centerX: pointsRef.current.x , 
            centerY : pointsRef.current.y , 
            radius : radius , 
-           color : Color
+           color : Color , 
+           strokColor : "White" ,
+           strokWidth : strokWidth.current
         }])
     }
 
@@ -333,12 +349,13 @@ export default function DashBoard() {
         ))}
 
         <div className="w-7 h-px" style={{ background: "#38383f" }} />
-        <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: "#555560" }}>Size</span>
+        <span className="text-[9px] font-semibold uppercase tracking-wider text-white">Size</span>
 
-        {[6, 9, 13].map((size, i) => (
+        {[6, 8, 10].map((size, i) => (
           <button
             key={size}
             className="rounded-full transition-transform"
+            onClick={()=> strokWidth.current == size}
             style={{
               width: size, height: size,
               background: i === 0 ? "#7c78e8" : "#888898",

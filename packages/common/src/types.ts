@@ -17,7 +17,9 @@ export const UserSignup = z.object({
     Starty: number,
     endX: number,
     endY: number,
-    color: string
+    color: string , 
+    strokWidth : number , 
+    strokColor : string 
   }
  export  type DrawLineType = {
     id: string,
@@ -26,7 +28,8 @@ export const UserSignup = z.object({
     Starty: number,
     endX: number,
     endY: number,
-    color: string
+    color: string , 
+    strokWidth:number
   }
  export type DrawPencilType = {
     id: string,
@@ -35,7 +38,8 @@ export const UserSignup = z.object({
       x: number,
       y: number
     }[],
-    color: string
+    color: string , 
+    strokWidth : number , 
   }
 
   export type DrawCircle =  {
@@ -44,7 +48,9 @@ export const UserSignup = z.object({
    centerX: number , 
    centerY: number , 
    radius : number , 
-   color : string 
+   color : string  , 
+   strokWidth : number , 
+   strokColor : string 
   }
  export type ElementsType =
     DrawRectType | DrawLineType | DrawPencilType | DrawCircle 
