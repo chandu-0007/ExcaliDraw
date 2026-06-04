@@ -9,11 +9,5 @@ export function CheckInCircle(
     Math.pow(x - element.centerX, 2) +
     Math.pow(y - element.centerY, 2);
 
-  const radiusSquared = Math.pow(element.radius, 2);
-
-  const tolerance = 5; // pixels
-
-  return (
-    Math.abs(Math.sqrt(distanceSquared) - element.radius) <= tolerance
-  );
+  return distanceSquared <= element.radius * element.radius;
 }

@@ -1,5 +1,5 @@
-export const  DrawLine = (ctx : CanvasRenderingContext2D | null | undefined ,oldx: number , oldy : number , newx : number , newy :number  , isDrawing : boolean , color : string , StrokWidth : number) => {
-    if(ctx == null || ctx == undefined || !isDrawing){
+export const  DrawLine = (ctx : CanvasRenderingContext2D | null | undefined ,oldx: number , oldy : number , newx : number , newy :number  , color : string , StrokWidth : number) => {
+    if(ctx == null || ctx == undefined){
         return ; 
     }
     ctx.strokeStyle = color ; 

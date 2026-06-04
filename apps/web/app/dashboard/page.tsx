@@ -15,14 +15,16 @@ import { CheckInLine } from "../lib/CheckInLine";
 import { CheckInRect } from "../lib/CheckInRect";
 import { findDistance } from "../lib/findDistance";
 import { drawCircle } from "../lib/DrawCricle";
-import {CheckInCircle} from "../lib/CheckInCricle";
+import { CheckInCircle } from "../lib/CheckInCricle";
+import DrawArrow from "../lib/DrawArrow";
+import { handleSelect } from "../lib/HandleSelect";
 
 
 export default function DashBoard() {
   const [isDrawing, SetisDrawing] = useState<boolean>(false);
   const [elements, SetElements] = useState<ElementsType[]>([]);
   const [SelectElement, setSelectedElement] = useState<ElementsType | null>(null);
-  const strokWidth = useRef<number>(3); 
+  const strokWidth = useRef<number>(3);
   const earserRef = useRef<boolean>(false);
 
   //for routing 
@@ -59,76 +61,65 @@ export default function DashBoard() {
 
   const [DrawingObject, SetDrawingObject] = useState<string>("Rectangle");
 
-  const handleSelect = (x: number, y: number) => {
-    for (const element of elements) {
-      if (
-        element.type === "Rectangle") {
-        if (CheckInRect(element, x, y)) {
-          setSelectedElement(element);
-          return;
-        }
-        console.log(element?.id);
-      } else if (element.type === "Line") {
-        if (CheckInLine(element, x, y)) {
-          setSelectedElement(element);
-          return;
-        }
-      }else if(element.type === "Ellipse"){
-        if(CheckInCircle(element , x , y)){
-          setSelectedElement(element); 
-          return ; 
-        }
-      }
-    }
-    setSelectedElement(null);
+  //move object logic 
+ const MoveObject = (mouseX: number, mouseY: number) => {
+  if (!SelectElement) return;
+
+  const dx = mouseX - dragRef.current.x;
+  const dy = mouseY - dragRef.current.y;
+
+  dragRef.current = {
+    x: mouseX,
+    y: mouseY,
   };
 
+  SetElements(prevs =>
+    prevs.map(element => {
+      if (element.id !== SelectElement.id) return element;
 
-  //move object logic 
-  const MoveObject = (
-    mouseX: number,
-    mouseY: number
-  ) => {
-    if (!SelectElement) return;
-
-    const dx = mouseX - dragRef.current.x;
-    const dy = mouseY - dragRef.current.y;
-    dragRef.current = {
-      x: mouseX,
-      y: mouseY,
-    };
-
-    SetElements((prevs) =>
-      prevs.map((element) =>
-        element.id === SelectElement.id &&
-          element.type === "Rectangle"
-          ? {
+      switch (element.type) {
+        case "Rectangle":
+        case "Line":
+        case "Arrow":
+          return {
             ...element,
             Startx: element.Startx + dx,
             Starty: element.Starty + dy,
             endX: element.endX + dx,
             endY: element.endY + dy,
-          }
-          : element
-      )
-    );
-  };
+          };
+
+        case "Ellipse":
+          return {
+            ...element,
+            centerX: element.centerX + dx,
+            centerY: element.centerY + dy,
+          };
+        
+        default:
+          return element;
+      }
+    })
+  );
+};
 
   const getMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
     const react = canvasRef.current?.getBoundingClientRect();
     if (!react) return;
     if (DrawingObject === "earser") {
       earserRef.current = true;
+      return ; 
     }
     if (DrawingObject === "select") {
       const mouseX = e.clientX - react.left;
       const mouseY = e.clientY - react.top;
-      handleSelect(mouseX, mouseY);
+       const found = handleSelect(elements ,mouseX, mouseY);
+       if(found != null) setSelectedElement(found);
+       console.log(found);
       dragRef.current = {
         x: mouseX,
         y: mouseY,
       };
-
       return;
     }
     pointsRef.current = {
@@ -151,105 +142,145 @@ export default function DashBoard() {
     const newY = e.clientY - react.top;
     const ctx = canvasRef.current?.getContext("2d");
     if (DrawingObject === "earser" && earserRef.current == true) {
-      handleSelect(newX, newY);
-      if (SelectElement != null) {
-        SetElements(EarseElement(elements, SelectElement.id));
+      const found = handleSelect(elements , newX, newY);
+      if (found != null) {
+        SetElements(EarseElement(elements, found.id));
       }
       return;
     }
     if (SelectElement != null) {
       MoveObject(newX, newY);
+      return ; 
     }
     if (!isDrawing) return;
-  
-    if (DrawingObject === "Rectangle" || DrawingObject === "Line" || DrawingObject == "Ellipse") {
-      ClearCanvas(canvasRef, elements);
-      if (DrawingObject === "Rectangle") Rectangle(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, isDrawing, Color ,"White" , strokWidth.current);
-      else if(DrawingObject === "Line")DrawLine(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, isDrawing, Color , strokWidth.current);
-      else{
-        let radius = findDistance(pointsRef.current.x , pointsRef.current.y , newX , newY) ; 
-        drawCircle( ctx ,pointsRef.current.x , pointsRef.current.y , radius,Color,"White",strokWidth.current) ; 
-      }
+
+    switch (DrawingObject) {
+      case "Rectangle":
+        ClearCanvas(canvasRef, elements);
+        Rectangle(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, Color, "White", strokWidth.current);
+        break;
+      case "Line":
+        ClearCanvas(canvasRef, elements);
+        DrawLine(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, Color, strokWidth.current);
+        break;
+      case "Ellipse":
+        ClearCanvas(canvasRef, elements);
+        let radius = findDistance(pointsRef.current.x, pointsRef.current.y, newX, newY);
+        drawCircle(ctx, pointsRef.current.x, pointsRef.current.y, radius, Color, "White", strokWidth.current);
+        break;
+      case "pencil":
+        DrawLine(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, Color, strokWidth.current);
+        pointsRef.current = {
+          x: newX,
+          y: newY
+        }
+        SetPencils.current.push({
+          x: newX,
+          y: newY
+        })
+        break;
+      case "Arrow":
+        ClearCanvas(canvasRef, elements);
+        DrawArrow(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, Color, strokWidth.current);
+        break;
+      default:
+        console.log(DrawingObject);
+        break;
     }
-    else if (DrawingObject === "pencil") {
-      DrawLine(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, isDrawing, Color , strokWidth.current);
-      pointsRef.current = {
-        x: newX,
-        y: newY
-      }
-      SetPencils.current.push({
-        x: newX,
-        y: newY
-      })
-    }
+
   }
 
   const getMouseUp = (e: MouseEvent<HTMLCanvasElement>) => {
     if (SelectElement != null) {
       setSelectedElement(null);
+      earserRef.current = false;
       return;
     }
-    earserRef.current = false;
     SetisDrawing(false);
     if (canvasRef == null || canvasRef.current == null) return;
     let newX = e.clientX - canvasRef.current?.getBoundingClientRect().left;
     let newY = e.clientY - canvasRef.current?.getBoundingClientRect().top;
-    if (DrawingObject === "Rectangle") {
-      SetElements(prevs => [
-        ...prevs, {
-          id: generateUUID(),
-          type: DrawingObject,
-          Startx: pointsRef.current.x,
-          Starty: pointsRef.current.y,
-          endX: newX,
-          endY: newY,
-          color: Color , 
-          strokWidth : strokWidth.current ,
-          strokColor : "White"
-        }
-      ]
-      )
-    }else if(DrawingObject === "Line"){
-         SetElements(prevs => [
-        ...prevs, {
-          id: generateUUID(),
-          type: DrawingObject,
-          Startx: pointsRef.current.x,
-          Starty: pointsRef.current.y,
-          endX: newX,
-          endY: newY,
-          color: Color , 
-          strokWidth : strokWidth.current ,
-        }
-      ])
+    switch (DrawingObject) {
+      case "Rectangle":
+        SetElements(prevs => [
+          ...prevs,
+          {
+            id: generateUUID(),
+            type: DrawingObject,
+            Startx: pointsRef.current.x,
+            Starty: pointsRef.current.y,
+            endX: newX,
+            endY: newY,
+            color: Color,
+            strokWidth: strokWidth.current,
+            strokColor: "White",
+          },
+        ]);
+        break;
 
-    } else if(DrawingObject === "pencil") {
-      console.log(SetPencils.current);
-      SetElements(prevs => [...prevs, {
-        id: generateUUID(),
-        type: "pencil",
-        points: SetPencils.current,
-        color: Color , 
-        strokWidth : strokWidth.current
-      }])
-    }
-    else if(DrawingObject === "Ellipse"){
-      const radius = findDistance(pointsRef.current.x , pointsRef.current.y , newX , newY) ; 
-        SetElements(prevs => [...prevs , {
-          id:generateUUID() , 
-           type: "Ellipse" , 
-           centerX: pointsRef.current.x , 
-           centerY : pointsRef.current.y , 
-           radius : radius , 
-           color : Color , 
-           strokColor : "White" ,
-           strokWidth : strokWidth.current
-        }])
+      case "Line":
+      case "Arrow":
+        SetElements(prevs => [
+          ...prevs,
+          {
+            id: generateUUID(),
+            type: DrawingObject,
+            Startx: pointsRef.current.x,
+            Starty: pointsRef.current.y,
+            endX: newX,
+            endY: newY,
+            color: Color,
+            strokWidth: strokWidth.current,
+          },
+        ]);
+        break;
+
+      case "pencil":
+        console.log(SetPencils.current);
+
+        SetElements(prevs => [
+          ...prevs,
+          {
+            id: generateUUID(),
+            type: "pencil",
+            points: SetPencils.current,
+            color: Color,
+            strokWidth: strokWidth.current,
+          },
+        ]);
+
+        break;
+
+      case "Ellipse":
+        const radius = findDistance(
+          pointsRef.current.x,
+          pointsRef.current.y,
+          newX,
+          newY
+        );
+
+        SetElements(prevs => [
+          ...prevs,
+          {
+            id: generateUUID(),
+            type: "Ellipse",
+            centerX: pointsRef.current.x,
+            centerY: pointsRef.current.y,
+            radius,
+            color: Color,
+            strokColor: "White",
+            strokWidth: strokWidth.current,
+          },
+        ]);
+        break;
+      default:
+        break;
     }
 
+    OnclickSelect() ; 
   }
 
-  const OnclickSelect = (e: MouseEvent<HTMLElement>) => {
+  const OnclickSelect = () => {
     SetisDrawing(false);
     SetDrawingObject("select");
   }
@@ -318,7 +349,7 @@ export default function DashBoard() {
           <button
             key={c}
             title={label}
-            onClick={() => SetColor(c)}
+
             className="w-6 h-6 rounded-md transition-transform"
             style={{
               background: c,
@@ -336,11 +367,13 @@ export default function DashBoard() {
           { c: "#3d2c00", label: "Dark Orange" },
           { c: "#1a3a22", label: "Dark Green" },
           { c: "#2a2050", label: "Dark Purple" },
+          {c : "black" , label : "black"}
         ].map(({ c, label, dashed }) => (
           <button
             key={c}
             title={label}
             className="w-6 h-6 rounded-md transition-transform"
+            onClick={() =>SetColor(c)}
             style={{
               background: c,
               border: dashed ? "1.5px dashed #555" : `2px solid transparent`,
@@ -355,7 +388,7 @@ export default function DashBoard() {
           <button
             key={size}
             className="rounded-full transition-transform"
-            onClick={()=> strokWidth.current == size}
+            onClick={() => strokWidth.current = size}
             style={{
               width: size, height: size,
               background: i === 0 ? "#7c78e8" : "#888898",
@@ -447,11 +480,11 @@ export default function DashBoard() {
       {/* Canvas */}
       <canvas
         ref={canvasRef}
-        className="w-screen h-screen"
+        className="w-screen h-screen "
         style={{
           background: "transparent",
           cursor:
-            DrawingObject === "select" ? "pointer" :
+            DrawingObject === "select" ? "move" :
               DrawingObject === "earser" ? "cell" : "crosshair",
         }}
         onMouseDown={getMouseDown}

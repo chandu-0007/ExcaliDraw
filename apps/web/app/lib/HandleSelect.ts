@@ -1,20 +1,23 @@
 import type { ElementsType } from "@repo/common";
-const handleSelect = ( elements:  ElementsType[], x :  number, y: number) => {
+import { CheckInRect } from "./CheckInRect";
+import { CheckInLine } from "./CheckInLine";
+import { CheckInCircle } from "./CheckInCricle";
+export const handleSelect = ( elements:  ElementsType[], x :  number, y: number) => {
     for (const element of elements) {
-      if (
-        element.type === "Rectangle") {
-        const minX = Math.min(element.Startx, element.endX);
-        const maxX = Math.max(element.Startx, element.endX);
-
-        const minY = Math.min(element.Starty, element.endY);
-        const maxY = Math.max(element.Starty, element.endY);
-
-        if(x >= minX && x <=maxX &&  y >= minY && y <= maxY){
-         return element ; 
-        return ; 
-        }
-        console.log(element?.id);
-      }
+       switch(element.type){
+          case "Rectangle" : 
+             if(CheckInRect(element , x , y )) return element ; 
+             break ; 
+          case "Line": 
+          case "Arrow":
+             if(CheckInLine(element,x,y)) return element ; 
+             break ; 
+          case "Ellipse" : 
+             if(CheckInCircle(element,x,y))return element ; 
+             break; 
+          default : 
+            return null; 
+       }
     }
     return null ; 
   };

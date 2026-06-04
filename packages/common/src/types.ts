@@ -23,7 +23,7 @@ export const UserSignup = z.object({
   }
  export  type DrawLineType = {
     id: string,
-    type: "Line",
+    type: "Line" | "Arrow",
     Startx: number,
     Starty: number,
     endX: number,
