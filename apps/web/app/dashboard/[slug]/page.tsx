@@ -23,6 +23,7 @@ import { drawCircle } from "../../lib/DrawCricle";
 import { findDistance } from "../../lib/findDistance";
 import { CheckInCircle } from "../../lib/CheckInCricle";
 import { text } from "stream/consumers";
+import { s } from "framer-motion/client";
 
 export default function Collaboration() {
   const params = useParams();
@@ -218,15 +219,15 @@ useEffect(() => {
     if (DrawingObject === "Rectangle" || DrawingObject === "Line" || DrawingObject === "Ellipse") {
       ClearCanvas(canvasRef, elements);
       if (DrawingObject === "Rectangle") {
-        Rectangle(ctx, SetPoints.current.x, SetPoints.current.y, newX, newY, true, Color , "White" , 3);
+        Rectangle(ctx, SetPoints.current.x, SetPoints.current.y, newX, newY, Color , "White" , 3);
       } else if(DrawingObject === "Line") {
-        DrawLine(ctx, SetPoints.current.x, SetPoints.current.y, newX, newY, true, Color , 3);
+        DrawLine(ctx, SetPoints.current.x, SetPoints.current.y, newX, newY, Color , 3);
       }else {
           const radius = findDistance(SetPoints.current.x , SetPoints.current.y , newX , newY);
           drawCircle(ctx , SetPoints.current.x , SetPoints.current.y,radius , Color,"White" , 3);
       }
     } else if (DrawingObject === "pencil") {
-      DrawLine(ctx, SetPoints.current.x, SetPoints.current.y, newX, newY, true, Color , 3 );
+      DrawLine(ctx, SetPoints.current.x, SetPoints.current.y, newX, newY, Color , 3 );
       SetPencil.current.push({ x: newX, y: newY });
       SetPoints.current = { x: newX, y: newY };
     }
@@ -506,28 +507,56 @@ useEffect(() => {
        
 
        {/* chats */}
-      <div  className="w-50  h-150 bg-neutral-500 rounded-lg absolute top-10 right-6"> 
-         <div 
-           className="flex-col"
-         >
-         <div> {messages.map((child , index) => <div 
-        key={index}>
-          <span >{child.Text}</span>
-         </div>)}
-        </div> 
-        <div> 
-          <input
-            value={Input}
-            onChange={(e) => SetInput(e.target.value)} 
-            className="text-black bg-white  "
-          ></input>
-          <button  
-          onClick={SendMessageHandler}>
-            send
-          </button>
-        </div>
+   <div className="w-[260px] h-fit bg-[#1a1a2e] rounded-xl absolute top-10 right-6 border border-[#2a2a3e] flex flex-col overflow-hidden shadow-xl">
+
+  {/* Header */}
+  <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[#2a2a3e]">
+    <div className="w-2 h-2 rounded-full bg-[#1D9E75]" />
+    <span className="text-[13px] font-medium text-[#e2e2e8] flex-1">Collaborators</span>
+    <span className="text-[11px] text-[#6b6b80] bg-[#2a2a3e] rounded-full px-2 py-0.5">
+      {messages.length} online
+    </span>
+  </div>
+
+  {/* Messages */}
+  <div className="flex flex-col gap-2 p-3 min-h-[180px] max-h-[220px] overflow-y-auto">
+    {messages.map((child, index) => (
+      <div
+        key={index}
+        className={`flex flex-col gap-0.5 max-w-[82%] `}
+      >
+    
+        <div
+          className={`px-3 py-1.5 rounded-xl text-[12px] leading-relaxed `}
+        >
+          {child.Text}
+        </div>            
+    
       </div>
-      </div>
+    ))}
+  </div>
+
+  {/* Input */}
+  <div className="flex items-center gap-2 px-3 py-2.5 border-t border-[#2a2a3e]">
+    <input
+      value={Input}
+      onChange={(e) => SetInput(e.target.value)}
+      onKeyDown={(e) => e.key === "Enter" && SendMessageHandler()}
+      placeholder="Message..."
+      className="flex-1 bg-[#2a2a3e] border border-[#3a3a4e] rounded-full px-3 py-1.5 text-[12px] text-[#e2e2e8] placeholder-[#6b6b80] outline-none focus:border-[#1D9E75]"
+    />
+    <button
+      onClick={SendMessageHandler}
+      className="w-8 h-8 rounded-full bg-[#1D9E75] hover:bg-[#0F6E56] flex items-center justify-center flex-shrink-0 transition-colors"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"/>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+
+</div>
       
 
       {/* Canvas */}

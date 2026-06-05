@@ -25,6 +25,7 @@ export default function DashBoard() {
   const [elements, SetElements] = useState<ElementsType[]>([]);
   const [SelectElement, setSelectedElement] = useState<ElementsType | null>(null);
   const strokWidth = useRef<number>(3);
+  const strokColor = useRef<string>("");
   const earserRef = useRef<boolean>(false);
 
   //for routing 
@@ -32,7 +33,7 @@ export default function DashBoard() {
 
   //staring point
   const pointsRef = useRef<{ x: number, y: number }>({ x: 0, y: 0 })
-  const [Color, SetColor] = useState<string>("black");
+  const [Color, SetColor] = useState<string>("");
   const canvasRef = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
     const ctx = canvasRef.current?.getContext("2d");
@@ -157,7 +158,7 @@ export default function DashBoard() {
     switch (DrawingObject) {
       case "Rectangle":
         ClearCanvas(canvasRef, elements);
-        Rectangle(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, Color, "White", strokWidth.current);
+        Rectangle(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, Color, strokColor.current, strokWidth.current);
         break;
       case "Line":
         ClearCanvas(canvasRef, elements);
@@ -166,7 +167,7 @@ export default function DashBoard() {
       case "Ellipse":
         ClearCanvas(canvasRef, elements);
         let radius = findDistance(pointsRef.current.x, pointsRef.current.y, newX, newY);
-        drawCircle(ctx, pointsRef.current.x, pointsRef.current.y, radius, Color, "White", strokWidth.current);
+        drawCircle(ctx, pointsRef.current.x, pointsRef.current.y, radius, Color,strokColor.current, strokWidth.current);
         break;
       case "pencil":
         DrawLine(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, Color, strokWidth.current);
@@ -213,7 +214,7 @@ export default function DashBoard() {
             endY: newY,
             color: Color,
             strokWidth: strokWidth.current,
-            strokColor: "White",
+            strokColor: strokColor.current,
           },
         ]);
         break;
@@ -268,7 +269,7 @@ export default function DashBoard() {
             centerY: pointsRef.current.y,
             radius,
             color: Color,
-            strokColor: "White",
+            strokColor: strokColor.current,
             strokWidth: strokWidth.current,
           },
         ]);
@@ -276,8 +277,6 @@ export default function DashBoard() {
       default:
         break;
     }
-
-    OnclickSelect() ; 
   }
 
   const OnclickSelect = () => {
@@ -349,11 +348,11 @@ export default function DashBoard() {
           <button
             key={c}
             title={label}
-
+            onClick={()=> strokColor.current = c}
             className="w-6 h-6 rounded-md transition-transform"
             style={{
               background: c,
-              border: `2px solid ${Color === c ? "#e8e8f0" : "transparent"}`,
+              border: `2px solid ${strokColor.current === c ? "#e8e8f0" : "transparent"}`,
               transform: Color === c ? "scale(1.1)" : "scale(1)",
             }}
           />
@@ -388,7 +387,7 @@ export default function DashBoard() {
           <button
             key={size}
             className="rounded-full transition-transform"
-            onClick={() => strokWidth.current = size}
+            onClick={() => strokWidth.current = size-3}
             style={{
               width: size, height: size,
               background: i === 0 ? "#7c78e8" : "#888898",
