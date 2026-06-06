@@ -11,11 +11,8 @@ import type {
   ElementsType
 } from "@repo/common";
 import { ClearCanvas } from "../lib/ClearCanvas";
-import { CheckInLine } from "../lib/CheckInLine";
-import { CheckInRect } from "../lib/CheckInRect";
 import { findDistance } from "../lib/findDistance";
 import { drawCircle } from "../lib/DrawCricle";
-import { CheckInCircle } from "../lib/CheckInCricle";
 import DrawArrow from "../lib/DrawArrow";
 import { handleSelect } from "../lib/HandleSelect";
 
@@ -27,6 +24,20 @@ export default function DashBoard() {
   const strokWidth = useRef<number>(3);
   const strokColor = useRef<string>("");
   const earserRef = useRef<boolean>(false);
+
+  const [shareModal, setShareModal] = useState<{ visible: boolean; url: string }>({
+    visible: false,
+    url: "",
+  });
+
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(shareModal.url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
 
   //for routing 
   const router = useRouter();
@@ -63,60 +74,60 @@ export default function DashBoard() {
   const [DrawingObject, SetDrawingObject] = useState<string>("Rectangle");
 
   //move object logic 
- const MoveObject = (mouseX: number, mouseY: number) => {
-  if (!SelectElement) return;
+  const MoveObject = (mouseX: number, mouseY: number) => {
+    if (!SelectElement) return;
 
-  const dx = mouseX - dragRef.current.x;
-  const dy = mouseY - dragRef.current.y;
+    const dx = mouseX - dragRef.current.x;
+    const dy = mouseY - dragRef.current.y;
 
-  dragRef.current = {
-    x: mouseX,
-    y: mouseY,
+    dragRef.current = {
+      x: mouseX,
+      y: mouseY,
+    };
+
+    SetElements(prevs =>
+      prevs.map(element => {
+        if (element.id !== SelectElement.id) return element;
+
+        switch (element.type) {
+          case "Rectangle":
+          case "Line":
+          case "Arrow":
+            return {
+              ...element,
+              Startx: element.Startx + dx,
+              Starty: element.Starty + dy,
+              endX: element.endX + dx,
+              endY: element.endY + dy,
+            };
+
+          case "Ellipse":
+            return {
+              ...element,
+              centerX: element.centerX + dx,
+              centerY: element.centerY + dy,
+            };
+
+          default:
+            return element;
+        }
+      })
+    );
   };
-
-  SetElements(prevs =>
-    prevs.map(element => {
-      if (element.id !== SelectElement.id) return element;
-
-      switch (element.type) {
-        case "Rectangle":
-        case "Line":
-        case "Arrow":
-          return {
-            ...element,
-            Startx: element.Startx + dx,
-            Starty: element.Starty + dy,
-            endX: element.endX + dx,
-            endY: element.endY + dy,
-          };
-
-        case "Ellipse":
-          return {
-            ...element,
-            centerX: element.centerX + dx,
-            centerY: element.centerY + dy,
-          };
-        
-        default:
-          return element;
-      }
-    })
-  );
-};
 
   const getMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
     const react = canvasRef.current?.getBoundingClientRect();
     if (!react) return;
     if (DrawingObject === "earser") {
       earserRef.current = true;
-      return ; 
+      return;
     }
     if (DrawingObject === "select") {
       const mouseX = e.clientX - react.left;
       const mouseY = e.clientY - react.top;
-       const found = handleSelect(elements ,mouseX, mouseY);
-       if(found != null) setSelectedElement(found);
-       console.log(found);
+      const found = handleSelect(elements, mouseX, mouseY);
+      if (found != null) setSelectedElement(found);
+      console.log(found);
       dragRef.current = {
         x: mouseX,
         y: mouseY,
@@ -143,7 +154,7 @@ export default function DashBoard() {
     const newY = e.clientY - react.top;
     const ctx = canvasRef.current?.getContext("2d");
     if (DrawingObject === "earser" && earserRef.current == true) {
-      const found = handleSelect(elements , newX, newY);
+      const found = handleSelect(elements, newX, newY);
       if (found != null) {
         SetElements(EarseElement(elements, found.id));
       }
@@ -151,7 +162,7 @@ export default function DashBoard() {
     }
     if (SelectElement != null) {
       MoveObject(newX, newY);
-      return ; 
+      return;
     }
     if (!isDrawing) return;
 
@@ -167,7 +178,7 @@ export default function DashBoard() {
       case "Ellipse":
         ClearCanvas(canvasRef, elements);
         let radius = findDistance(pointsRef.current.x, pointsRef.current.y, newX, newY);
-        drawCircle(ctx, pointsRef.current.x, pointsRef.current.y, radius, Color,strokColor.current, strokWidth.current);
+        drawCircle(ctx, pointsRef.current.x, pointsRef.current.y, radius, Color, strokColor.current, strokWidth.current);
         break;
       case "pencil":
         DrawLine(ctx, pointsRef.current.x, pointsRef.current.y, newX, newY, Color, strokWidth.current);
@@ -286,18 +297,16 @@ export default function DashBoard() {
 
   const OnClickShare = async () => {
     try {
-      const response = await axios.post("/api/room", {
-        elements,
-      });
+      const response = await axios.post("/api/room", { elements });
       const data = response.data;
-      if (data.Status == 200) {
-        console.log(data);
-        if (router != null) router.push(`/${data.id}`)
+      if (data.id) {
+        const roomUrl = `${window.location.origin}/dashboard/${data.id}`;
+        setShareModal({ visible: true, url: roomUrl });
       }
     } catch (err) {
       console.log(err);
     }
-  }
+  };
 
   return (
     <div className="w-screen h-screen overflow-hidden relative"
@@ -348,7 +357,7 @@ export default function DashBoard() {
           <button
             key={c}
             title={label}
-            onClick={()=> strokColor.current = c}
+            onClick={() => strokColor.current = c}
             className="w-6 h-6 rounded-md transition-transform"
             style={{
               background: c,
@@ -366,13 +375,13 @@ export default function DashBoard() {
           { c: "#3d2c00", label: "Dark Orange" },
           { c: "#1a3a22", label: "Dark Green" },
           { c: "#2a2050", label: "Dark Purple" },
-          {c : "black" , label : "black"}
+          { c: "black", label: "black" }
         ].map(({ c, label, dashed }) => (
           <button
             key={c}
             title={label}
             className="w-6 h-6 rounded-md transition-transform"
-            onClick={() =>SetColor(c)}
+            onClick={() => SetColor(c)}
             style={{
               background: c,
               border: dashed ? "1.5px dashed #555" : `2px solid transparent`,
@@ -387,7 +396,7 @@ export default function DashBoard() {
           <button
             key={size}
             className="rounded-full transition-transform"
-            onClick={() => strokWidth.current = size-3}
+            onClick={() => strokWidth.current = size - 3}
             style={{
               width: size, height: size,
               background: i === 0 ? "#7c78e8" : "#888898",
@@ -475,6 +484,113 @@ export default function DashBoard() {
         <button className="w-5 h-5 rounded flex items-center justify-center text-sm"
           style={{ background: "#32323a", border: "1px solid #38383f", color: "#b0b0be" }}>+</button>
       </div>
+
+      {/* Share Modal */}
+      {shareModal.visible && (
+        <div className="absolute inset-0 z-[100] flex items-center justify-center"
+          style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
+
+          <div className="flex flex-col gap-4 p-6 rounded-2xl w-[420px]"
+            style={{ background: "#1e1e26", border: "1px solid #38383f", boxShadow: "0 8px 40px rgba(0,0,0,0.6)" }}>
+
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{ background: "#2a2a35" }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c78e8" strokeWidth="2">
+                    <circle cx="18" cy="5" r="3" />
+                    <circle cx="6" cy="12" r="3" />
+                    <circle cx="18" cy="19" r="3" />
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold" style={{ color: "#e8e8f0" }}>Share Canvas</p>
+                  <p className="text-xs" style={{ color: "#666670" }}>Anyone with the link can view and collaborate</p>
+                </div>
+              </div>
+              <button onClick={() => setShareModal({ visible: false, url: "" })}
+                className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-[#2a2a35]"
+                style={{ color: "#666670" }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Divider */}
+            <div style={{ height: "1px", background: "#2a2a35" }} />
+
+            {/* URL Box */}
+            <div>
+              <p className="text-xs font-medium mb-2" style={{ color: "#888898" }}>Room link</p>
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
+                style={{ background: "#13131a", border: "1px solid #2a2a35" }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#555560" strokeWidth="2">
+                  <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+                </svg>
+                <span className="flex-1 text-xs truncate" style={{ color: "#a0a0b0", fontFamily: "monospace" }}>
+                  {shareModal.url}
+                </span>
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-2">
+              <button
+                onClick={handleCopy}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                style={{
+                  background: copied ? "#1a3a2a" : "#7c78e8",
+                  color: copied ? "#40c057" : "white",
+                  border: copied ? "1px solid #40c057" : "1px solid transparent",
+                }}>
+                {copied ? (
+                  <>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                    </svg>
+                    Copy Link
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={() => router.push(shareModal.url)}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold"
+                style={{ background: "#26262c", border: "1px solid #38383f", color: "#e8e8f0" }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                  <polyline points="15 3 21 3 21 9" />
+                  <line x1="10" y1="14" x2="21" y2="3" />
+                </svg>
+                Open Room
+              </button>
+            </div>
+
+            {/* Cancel */}
+            <button
+              onClick={() => setShareModal({ visible: false, url: "" })}
+              className="text-xs text-center transition-colors hover:underline"
+              style={{ color: "#555560" }}>
+              Cancel
+            </button>
+
+          </div>
+        </div>
+      )}
 
       {/* Canvas */}
       <canvas

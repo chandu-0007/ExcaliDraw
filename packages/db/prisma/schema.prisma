@@ -29,7 +29,7 @@ model Room {
   name        String
 
   // Entire canvas stored as JSON
-  elements    Json     @default("[]")
+  elements    Json     @default("[]") 
 
   // room owner
   adminId     String

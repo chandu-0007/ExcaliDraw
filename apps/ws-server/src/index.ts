@@ -69,12 +69,13 @@ io.on("connection", (socket: Socket) => {
       const messages = await prisma.message.findMany({where :{
         roomId : roomId 
       } , select :{
-          Text : true 
+          Text : true  , 
+          userId : true 
       }})
       // send previous elements
       socket.emit("room-data", {
         elements: room.elements,
-        messages : messages 
+        messages : messages        
       });
 
       console.log(
