@@ -2,6 +2,7 @@ import type { ElementsType } from "@repo/common";
 import { CheckInRect } from "./CheckInRect";
 import { CheckInLine } from "./CheckInLine";
 import { CheckInCircle } from "./CheckInCricle";
+import { CheckInText } from "./CheckInText";
 export const handleSelect = ( elements:  ElementsType[], x :  number, y: number) => {
     for (const element of elements) {
        switch(element.type){
@@ -15,6 +16,9 @@ export const handleSelect = ( elements:  ElementsType[], x :  number, y: number)
           case "Ellipse" : 
              if(CheckInCircle(element,x,y))return element ; 
              break; 
+          case "text" : 
+             if(CheckInText(element,x,y)) return element ; 
+             break ; 
           default : 
             return null; 
        }

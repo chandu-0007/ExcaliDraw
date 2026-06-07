@@ -31,6 +31,17 @@ export const UserSignup = z.object({
     color: string , 
     strokWidth:number
   }
+
+  export type TextType =  {
+    id: string;
+    type: "text";
+    x: number;
+    y: number;
+    text: string;
+    color: string;
+    fontSize: number;
+  }
+
  export type DrawPencilType = {
     id: string,
     type: "pencil"
@@ -53,4 +64,4 @@ export const UserSignup = z.object({
    strokColor : string 
   }
  export type ElementsType =
-    DrawRectType | DrawLineType | DrawPencilType | DrawCircle 
+    DrawRectType | DrawLineType | DrawPencilType | DrawCircle | TextType 

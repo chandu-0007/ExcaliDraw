@@ -24,7 +24,15 @@ export default function DashBoard() {
   const strokWidth = useRef<number>(3);
   const strokColor = useRef<string>("");
   const earserRef = useRef<boolean>(false);
+  const [textInput, setTextInput] = useState<{
+    screenX: number;
+    screenY: number;
+    canvasX: number;
+    canvasY: number;
+    visible: boolean;
+  }>({ screenX: 0, screenY: 0, canvasX: 0, canvasY: 0, visible: false });
 
+  const textDivRef = useRef<HTMLDivElement>(null);
   const [shareModal, setShareModal] = useState<{ visible: boolean; url: string }>({
     visible: false,
     url: "",
@@ -107,7 +115,12 @@ export default function DashBoard() {
               centerX: element.centerX + dx,
               centerY: element.centerY + dy,
             };
-
+          case "text":
+            return {
+              ...element,
+              x: element.x + dx,
+              y: element.y + dy
+            }
           default:
             return element;
         }
@@ -137,6 +150,19 @@ export default function DashBoard() {
     pointsRef.current = {
       x: e.clientX - react.left,
       y: e.clientY - react.top
+    }
+    if (DrawingObject === "text") {
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setTextInput({
+        screenX: e.clientX,
+        screenY: e.clientY,
+        canvasX: e.clientX - rect.left,
+        canvasY: e.clientY - rect.top,
+        visible: true,
+      });
+      setTimeout(() => textDivRef.current?.focus(), 0);
+      return;
     }
     if (DrawingObject === "pencil") {
       SetPencils.current = [{
@@ -307,6 +333,39 @@ export default function DashBoard() {
       console.log(err);
     }
   };
+
+
+  const commitText = () => {
+    const value = textDivRef.current?.innerText.trim();
+    if (value) {
+      SetElements(prev => [
+        ...prev,
+        {
+          id: generateUUID(),
+          type: "text",
+          x: textInput.canvasX,   // ✅ canvas coords
+          y: textInput.canvasY,
+          text: value,
+          color: Color || "#e8e8f0",
+          fontSize: strokWidth.current * 6 + 14,
+        }
+      ]);
+    }
+    if (textDivRef.current) textDivRef.current.innerText = "";
+    setTextInput({ screenX: 0, screenY: 0, canvasX: 0, canvasY: 0, visible: false });
+  };
+
+  const handleTextKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Escape") {
+      if (textDivRef.current) textDivRef.current.innerText = "";
+      setTextInput({ screenX: 0, screenY: 0, canvasX: 0, canvasY: 0, visible: false });
+    }
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      commitText();
+    }
+  };
+
 
   return (
     <div className="w-screen h-screen overflow-hidden relative"
@@ -590,6 +649,40 @@ export default function DashBoard() {
 
           </div>
         </div>
+      )}
+
+
+      {textInput.visible && (
+        <div
+          ref={textDivRef}
+          contentEditable
+          suppressContentEditableWarning
+          onBlur={commitText}
+          onKeyDown={handleTextKeyDown}
+          spellCheck={false}
+          style={{
+            position: "fixed",           // ✅ fixed not absolute
+            left: textInput.screenX,     // ✅ raw clientX
+            top: textInput.screenY,      // ✅ raw clientY
+            fontFamily: "'Caveat', cursive",  // ✅ handwritten font
+            fontSize: `${strokWidth.current * 6 + 14}px`,
+            lineHeight: 1.2,
+            color: Color || "#e8e8f0",
+            minWidth: "2px",
+            maxWidth: "500px",
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            background: "transparent",
+            border: "none",
+            outline: "none",
+            padding: "0",
+            margin: "0",
+            caretColor: Color || "#e8e8f0",
+            borderBottom: "1.5px dashed rgba(124,120,232,0.6)",
+            zIndex: 100,
+            cursor: "text",
+          }}
+        />
       )}
 
       {/* Canvas */}
