@@ -3,6 +3,8 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { prisma } from "@repo/db/client";
 
+import { Redis } from "ioredis"
+
 dotenv.config();
 
 const io = new Server(8000, {
@@ -10,6 +12,14 @@ const io = new Server(8000, {
     origin: "*",
   },
 });
+
+const redis = new Redis();
+
+redis.on("connect", () => {
+      console.log("Redis connected");
+    });
+
+
 
 
 io.use((socket, next) => {
@@ -46,8 +56,19 @@ io.on("connection", (socket: Socket) => {
   console.log("User connected:", socket.data.userId);
 
   socket.on("join-room", async ({ roomId } : {roomId : string }) => {
+
+      socket.join(roomId);
+
     try {
 
+        const cachedRoom  = await redis?.get(`room:${roomId}`) ; 
+        const cachedMessages = await redis?.get(`message:${roomId}`)  ; 
+       if(cachedRoom && cachedMessages) return socket.emit("room-data" , {
+          elements : JSON.parse(cachedRoom) , 
+          messages : JSON.parse(cachedMessages)
+       })
+
+       
       const room = await prisma.room.findUnique({
         where: {
           id: roomId,
@@ -62,16 +83,17 @@ io.on("connection", (socket: Socket) => {
 
       }
 
-      // join socket room
-      socket.join(roomId);
-
-
       const messages = await prisma.message.findMany({where :{
         roomId : roomId 
       } , select :{
           Text : true  , 
           userId : true 
       }})
+
+      //save it ono redis 
+
+    await redis.set(`message:${roomId}`, JSON.stringify(messages));
+    await redis.set(`room:${roomId}`, JSON.stringify(room.elements)); 
       // send previous elements
       socket.emit("room-data", {
         elements: room.elements,
@@ -157,5 +179,6 @@ io.on("connection", (socket: Socket) => {
   });
 
 });
+
 
 console.log("WebSocket server running on port 8000");
