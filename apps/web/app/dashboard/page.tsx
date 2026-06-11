@@ -16,7 +16,7 @@ import { drawCircle } from "../lib/DrawCricle";
 import DrawArrow from "../lib/DrawArrow";
 import { handleSelect } from "../lib/HandleSelect";
 
-
+import duplicateElement from "../lib/duplicateElement";
 export default function DashBoard() {
   const [isDrawing, SetisDrawing] = useState<boolean>(false);
   const [elements, SetElements] = useState<ElementsType[]>([]);
@@ -24,6 +24,7 @@ export default function DashBoard() {
   const strokWidth = useRef<number>(3);
   const strokColor = useRef<string>("");
   const earserRef = useRef<boolean>(false);
+  const  User  = useRef<String>("") ; 
   const [textInput, setTextInput] = useState<{
     screenX: number;
     screenY: number;
@@ -39,13 +40,12 @@ export default function DashBoard() {
   });
 
   const [copied, setCopied] = useState(false);
-
+  const [Logout , SetLogout] = useState(false) ; 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareModal.url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
 
   //for routing 
   const router = useRouter();
@@ -59,6 +59,9 @@ export default function DashBoard() {
     if (ctx != null && canvasRef.current != null) {
       ClearCanvas(canvasRef, elements);
     }
+    const interval = setInterval(() => localStorage.setItem("canvas-elements", JSON.stringify(elements)) , 1000);
+
+    return () => clearInterval(interval);
   }, [elements])
 
   useEffect(() => {
@@ -68,11 +71,40 @@ export default function DashBoard() {
     canvasRef.current.height = window.innerHeight;
 
     const ctx = canvasRef.current.getContext("2d");
-
+    const LocalElements = localStorage.getItem("canvas-elements"); 
+     if(LocalElements != null) SetElements(JSON.parse(LocalElements)) ; 
     if (ctx) {
       ClearCanvas(canvasRef, elements);
     }
+   const UserInfo = async ()=>{
+      const response = await axios.get("/api/profile") ; 
+      if(response.status === 200 ){
+          User.current = response.data.UserName ; 
+      }
+   }
+    UserInfo(); 
   }, []);
+  
+  useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key.toLowerCase() === "d") {
+      e.preventDefault();
+
+      if (SelectElement == null) return;
+      console.log("event called of ctrl + d ")
+      const duplicate  = duplicateElement(SelectElement)
+      if(duplicate == null) return ; 
+      SetElements(prevs  => [...prevs , duplicate!] )
+      setSelectedElement(duplicate);
+    }
+  };
+
+  window.addEventListener("keydown", handleKeyDown);
+
+  return () => {
+    window.removeEventListener("keydown", handleKeyDown);
+  };
+}, [SelectElement]);
 
 
   const SetPencils = useRef<{ x: number, y: number }[]>([]);
@@ -172,7 +204,7 @@ export default function DashBoard() {
     }
     SetisDrawing(true);
   }
-
+  
   const getMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
     const react = canvasRef.current?.getBoundingClientRect();
     if (!react) return;
@@ -320,7 +352,8 @@ export default function DashBoard() {
     SetisDrawing(false);
     SetDrawingObject("select");
   }
-
+   
+ 
   const OnClickShare = async () => {
     try {
       const response = await axios.post("/api/room", { elements });
@@ -343,7 +376,7 @@ export default function DashBoard() {
         {
           id: generateUUID(),
           type: "text",
-          x: textInput.canvasX,   // ✅ canvas coords
+          x: textInput.canvasX,   
           y: textInput.canvasY,
           text: value,
           color: Color || "#e8e8f0",
@@ -366,6 +399,10 @@ export default function DashBoard() {
     }
   };
 
+  const handleLogout = async() =>{
+      await axios.post("/api/logout") ;
+      window.location.reload()
+  }
 
   return (
     <div className="w-screen h-screen overflow-hidden relative"
@@ -394,8 +431,35 @@ export default function DashBoard() {
             </svg>
             Share
           </button>
+          <div
+             onClick={()=>SetLogout(!Logout)}
+            className="rounded-full bg-neutral-700 text-white text-2xl font-serif shadow-sm hover:cursor-pointer w-9 h-9  text-center items-center "
+          >
+             {User.current.substring(0,1)}
+          </div>
         </div>
       </div>
+
+{Logout && (
+  <div className="absolute right-4 top-16 bg-neutral-700 shadow-lg rounded-xl p-4 w-60">
+    <div className="flex items-center gap-3 mb-4">
+      <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center">
+        {User.current.substring(0,1).toUpperCase()}
+      </div>
+
+      <div>
+        <p className="font-medium">{User.current}</p>
+      </div>
+    </div>
+
+    <button
+      onClick={handleLogout}
+      className="w-full bg-red-500 text-white py-2 rounded-lg"
+    >
+      Logout
+    </button>
+  </div>
+)}
 
       {/* Left Color Panel */}
       <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2 px-2 py-2.5 rounded-xl"
@@ -661,10 +725,10 @@ export default function DashBoard() {
           onKeyDown={handleTextKeyDown}
           spellCheck={false}
           style={{
-            position: "fixed",           // ✅ fixed not absolute
-            left: textInput.screenX,     // ✅ raw clientX
-            top: textInput.screenY,      // ✅ raw clientY
-            fontFamily: "'Caveat', cursive",  // ✅ handwritten font
+            position: "fixed",           
+            left: textInput.screenX,     
+            top: textInput.screenY,      
+            fontFamily: "'Caveat', cursive",  
             fontSize: `${strokWidth.current * 6 + 14}px`,
             lineHeight: 1.2,
             color: Color || "#e8e8f0",

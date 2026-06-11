@@ -38,7 +38,6 @@ export default function Collaboration() {
   const { socket, connect, disconnect } = useSocket();
   const [Input, SetInput] = useState<string>("");
 
-  // ✅ Keep elementsRef in sync
   useEffect(() => {
     elementsRef.current = elements;
   }, [elements]);
@@ -64,7 +63,10 @@ export default function Collaboration() {
     if (!socket) return;
 
     const roomHandler = (data: { elements: ElementsType[]; messages: { Text: string }[] }) => {
-      SetElements(data.elements || []);
+      console.log(data);
+      const RecivedElements = data.elements ; 
+       console.log(RecivedElements) ;  
+      SetElements(RecivedElements|| []);
       Setmessages(data.messages || []);
     };
     const receiveHandler = (data: { elements: ElementsType[] }) => {
@@ -132,6 +134,8 @@ export default function Collaboration() {
         }
       })
     );
+
+
   };
 
   const getMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
@@ -219,7 +223,6 @@ export default function Collaboration() {
   };
 
   const getMouseUp = (e: MouseEvent<HTMLCanvasElement>) => {
-    // ✅ Always reset earser
     earserRef.current = false;
 
     if (DrawingObject === "select" && SelectElement.current != null) {
@@ -252,7 +255,7 @@ export default function Collaboration() {
           color: Color, strokWidth: strokWidth.current,
         };
         break;
-      case "Arrow":  // ✅ Arrow was missing from Collaboration
+      case "Arrow":  
         newElement = {
           id: generateUUID(), type: DrawingObject,
           Startx: SetPoints.current.x, Starty: SetPoints.current.y,
@@ -281,7 +284,7 @@ export default function Collaboration() {
 
     if (newElement != null) {
       SetElements((prev) => [...prev, newElement!]);
-      const updatedElements = [...elementsRef.current, newElement];  // ✅ use ref
+      const updatedElements = [...elementsRef.current, newElement];  
       socket?.emit("share-elements", { roomId: params.slug, elements: updatedElements });
     }
   };

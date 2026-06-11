@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       id:data.id
     });
 
-    // ✅ Set cookie here
+    //  Set cookie here
     response.cookies.set("token", data.token, {
       httpOnly: true,
       secure: false, // local

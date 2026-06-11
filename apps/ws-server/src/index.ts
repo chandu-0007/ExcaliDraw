@@ -21,7 +21,6 @@ redis.on("connect", () => {
 
 
 
-
 io.use((socket, next) => {
 
   const token = socket.handshake.auth.token;
@@ -61,12 +60,12 @@ io.on("connection", (socket: Socket) => {
 
     try {
 
-        const cachedRoom  = await redis?.get(`room:${roomId}`) ; 
-        const cachedMessages = await redis?.get(`message:${roomId}`)  ; 
-       if(cachedRoom && cachedMessages) return socket.emit("room-data" , {
-          elements : JSON.parse(cachedRoom) , 
-          messages : JSON.parse(cachedMessages)
-       })
+      //   const cachedRoom  = await redis?.get(`room:${roomId}`) ; 
+      //   const cachedMessages = await redis?.get(`message:${roomId}`)  ; 
+      //  if(cachedRoom && cachedMessages) return socket.emit("room-data" , {
+      //     elements : JSON.parse(cachedRoom) , 
+      //     messages : JSON.parse(cachedMessages)
+      //  })
 
        
       const room = await prisma.room.findUnique({
@@ -92,8 +91,8 @@ io.on("connection", (socket: Socket) => {
 
       //save it ono redis 
 
-    await redis.set(`message:${roomId}`, JSON.stringify(messages));
-    await redis.set(`room:${roomId}`, JSON.stringify(room.elements)); 
+    // await redis.set(`message:${roomId}`, JSON.stringify(messages));
+    // await redis.set(`room:${roomId}`, JSON.stringify(room.elements)); 
       // send previous elements
       socket.emit("room-data", {
         elements: room.elements,
@@ -116,12 +115,12 @@ io.on("connection", (socket: Socket) => {
 
   });
 
-  socket.on("share-elements", ({ roomId, elements }) => {
+  socket.on("share-elements",async ({ roomId, elements }) => {
       if (!socket.rooms.has(roomId)) return;
     socket.to(roomId).emit("receive-elements", {
       elements,
     });
-
+    // await redis.del(`room:${roomId}`) ; 
   });
 
   

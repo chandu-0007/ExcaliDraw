@@ -787,6 +787,7 @@ function FinalCTA() {
         <motion.button
           whileHover={{ scale: 1.04, boxShadow: "0 0 40px rgba(167,139,250,0.4)" }}
           whileTap={{ scale: 0.97 }}
+      
           className="px-12 py-5 bg-white text-black hover:bg-violet-400  font-semibold rounded-lg transition-colors duration-200"
         >
           Get Started for Free

@@ -1,4 +1,4 @@
-import express from "express"
+import express, { json } from "express"
 import type { Request, Response } from "express" 
 import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
@@ -132,4 +132,30 @@ router.post("/room", async (req: Request, res: Response) => {
   }
 });
 
+
+
+router.get("/profile" ,async  (req  : Request , res : Response ) =>{
+    const user = req.user as { id: string };
+    try{ 
+      const UserInfo = await prisma.user.findUnique({
+         where : {
+          id: user?.id
+         }, 
+         select : {
+           username: true  , 
+           photo : true 
+         }
+      })
+
+      return res.status(200).json({
+          UserName : UserInfo?.username , 
+          UserPhote : UserInfo?.photo 
+      })
+
+    }catch(err){
+          res.status(500).json({
+            message : "Internal server error "
+          })
+    }
+})
 export default router  ; 
