@@ -41,8 +41,8 @@ ExcaliDraw/
 - **WebSocket:** Node.js WebSocket server for real-time updates
 - **Database:** PostgreSQL with Prisma ORM
 - **Monorepo:** Turborepo + pnpm workspaces
-- **Containerization:** Docker + Docker Compose
-- **Language:** 100% TypeScript (89.6% TS, 6.1% CSS, 4.3% JS)
+- **Containerization:** Docker + Docker Compose<img width="182" height="150" alt="collabcanvas_system_design" src="https://github.com/user-attachments/assets/3c33af93-d4af-4a86-8780-c0429a782dda" />
+
 
 ---
 
@@ -52,6 +52,22 @@ ExcaliDraw/
 - **pnpm** 9.0.0 (`npm install -g pnpm@9.0.0`)
 - **Docker & Docker Compose** (for containerized setup)
 
+## System Architecture
+
+```mermaid
+graph TD
+    A[Browser Clients<br/>Next.js + React + TypeScript] -->|HTTP / WebSocket| B[Load Balancer / Nginx]
+    B --> C[Node.js Server 1<br/>Express + Socket.io]
+    B --> D[Node.js Server 2<br/>Express + Socket.io]
+    C <--> E[Redis Pub/Sub<br/>Cross-server event sync]
+    D <--> E
+    C --> F[(PostgreSQL<br/>via Prisma ORM)]
+    D --> F
+    C --> G[(Redis Cache<br/>Sessions)]
+    D --> G
+    H[GitHub Actions<br/>Lint + Type Check + Build] -->|Push image| I[Docker Hub]
+    I -->|Pull & Deploy| J[AWS EC2<br/>Docker Compose]
+```
 ---
 
 ##  Getting Started
