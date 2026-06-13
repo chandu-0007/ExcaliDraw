@@ -41,9 +41,7 @@ ExcaliDraw/
 - **WebSocket:** Node.js WebSocket server for real-time updates
 - **Database:** PostgreSQL with Prisma ORM
 - **Monorepo:** Turborepo + pnpm workspaces
-- **Containerization:** Docker + Docker Compose<img width="182" height="150" alt="collabcanvas_system_design" src="https://github.com/user-attachments/assets/3c33af93-d4af-4a86-8780-c0429a782dda" />
-
-
+- **Containerization:** Docker + Docker Compose 
 ---
 
 ##  Prerequisites
