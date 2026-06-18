@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   console.log(body);
   const token = (await cookies()).get("token")?.value;
   const response = await axios.post(
-    "http://localhost:3003/room",
+    "http://backend:3003/room",
     body,
     {
       headers: {

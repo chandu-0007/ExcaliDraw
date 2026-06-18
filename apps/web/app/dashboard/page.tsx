@@ -17,6 +17,7 @@ import DrawArrow from "../lib/DrawArrow";
 import { handleSelect } from "../lib/HandleSelect";
 
 import duplicateElement from "../lib/duplicateElement";
+import { label } from "framer-motion/client";
 export default function DashBoard() {
   const [isDrawing, SetisDrawing] = useState<boolean>(false);
   const [elements, SetElements] = useState<ElementsType[]>([]);
@@ -498,7 +499,9 @@ export default function DashBoard() {
           { c: "#3d2c00", label: "Dark Orange" },
           { c: "#1a3a22", label: "Dark Green" },
           { c: "#2a2050", label: "Dark Purple" },
-          { c: "black", label: "black" }
+          { c: "black", label: "black" } , 
+          { c : "White" , label : "white" }  , 
+          { c : "#CC0033" , label: "red"}
         ].map(({ c, label, dashed }) => (
           <button
             key={c}

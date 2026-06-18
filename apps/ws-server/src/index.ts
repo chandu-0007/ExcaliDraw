@@ -3,8 +3,6 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { prisma } from "@repo/db/client";
 
-import { Redis } from "ioredis"
-
 dotenv.config();
 
 const io = new Server(8000, {
@@ -12,13 +10,6 @@ const io = new Server(8000, {
     origin: "*",
   },
 });
-
-const redis = new Redis();
-
-redis.on("connect", () => {
-      console.log("Redis connected");
-    });
-
 
 
 io.use((socket, next) => {
