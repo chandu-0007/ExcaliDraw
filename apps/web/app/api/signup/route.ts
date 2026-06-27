@@ -5,7 +5,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // Call Express backend
+    
     const backendRes = await axios.post(
       "http://backend:3003/signup",
       body
@@ -19,10 +19,9 @@ export async function POST(req: Request) {
       id : data.id 
     });
 
-    // ✅ Set cookie here (same as signin)
     response.cookies.set("token", data.token, {
       httpOnly: true,
-      secure: false, // local dev
+      secure: false,
       sameSite: "lax",
       path: "/",
     });

@@ -17,7 +17,8 @@ export const SocketProvider = ({ children  , token }: { children: React.ReactNod
     if (socketRef.current) return;
     if (!token) return;
     console.log("socket connection is called ")
-    const s = io("http://ws-server:8000", {
+    
+    const s = io("http://13.49.127.163:8000", {
       withCredentials: true,
       transports: ["websocket"] ,   
       auth :{

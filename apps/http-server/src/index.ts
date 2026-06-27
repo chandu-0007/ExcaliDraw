@@ -3,7 +3,7 @@ import  cors from "cors"
 import rateLimit from "express-rate-limit"
 import dotenv from "dotenv"
 import UsersRouter from "./routers/router.users"
-import auth from "./middleware/auth"
+import AiRouter from "./routers/router.ai"
 import cookieParse from "cookie-parser"
 dotenv.config()
 const port = process.env.PORT ; 
@@ -14,11 +14,9 @@ app.use(cors({
     credentials : true
 }))
 app.use(cookieParse())
-app.use(rateLimit({
-    max : 3 
-}))
 app.use("/" , UsersRouter)
-app.get("/help",auth, (req , res)=>{
+app.use("/",AiRouter)
+app.get("/help", (req , res)=>{
     res.status(200).json({
      message : "helper router is called"
     })

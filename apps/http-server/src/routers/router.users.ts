@@ -49,7 +49,6 @@ router.post("/signup" , async (req  : Request, res : Response ) =>{
 })
 
 //signin router 
-
 router.post("/signin" , async(req : Request , res : Response) =>{
    const data = req.body ; 
     const dataparse = UserSignin.safeParse(data) ; 
@@ -88,11 +87,9 @@ router.post("/signin" , async(req : Request , res : Response) =>{
     }
 })
 
-// attachted the middleware router to the below routers 
-router.use(auth)
 
 //create room 
-router.post("/room", async (req: Request, res: Response) => {
+router.post("/room", auth , async (req: Request, res: Response) => {
   const user = req.user as { id: string };
   const elements = req.body.elements;
 
@@ -134,7 +131,7 @@ router.post("/room", async (req: Request, res: Response) => {
 
 
 
-router.get("/profile" ,async  (req  : Request , res : Response ) =>{
+router.get("/profile" ,auth , async  (req  : Request , res : Response ) =>{
     const user = req.user as { id: string };
     try{ 
       const UserInfo = await prisma.user.findUnique({

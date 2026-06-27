@@ -15,9 +15,10 @@ import { findDistance } from "../lib/findDistance";
 import { drawCircle } from "../lib/DrawCricle";
 import DrawArrow from "../lib/DrawArrow";
 import { handleSelect } from "../lib/HandleSelect";
-
 import duplicateElement from "../lib/duplicateElement";
-import { label } from "framer-motion/client";
+import { AiChatBar } from "../components/AiChatBar";
+
+
 export default function DashBoard() {
   const [isDrawing, SetisDrawing] = useState<boolean>(false);
   const [elements, SetElements] = useState<ElementsType[]>([]);
@@ -60,7 +61,7 @@ export default function DashBoard() {
     if (ctx != null && canvasRef.current != null) {
       ClearCanvas(canvasRef, elements);
     }
-    const interval = setInterval(() => localStorage.setItem("canvas-elements", JSON.stringify(elements)) , 1000);
+    const interval = setInterval(() => localStorage.setItem("canvas-elements", JSON.stringify(elements)) , 5000);
 
     return () => clearInterval(interval);
   }, [elements])
@@ -432,12 +433,12 @@ export default function DashBoard() {
             </svg>
             Share
           </button>
-          <div
+          {/* <div
              onClick={()=>SetLogout(!Logout)}
             className="rounded-full bg-neutral-700 text-white text-2xl font-serif shadow-sm hover:cursor-pointer w-9 h-9  text-center items-center "
           >
              {User.current.substring(0,1)}
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -461,6 +462,11 @@ export default function DashBoard() {
     </button>
   </div>
 )}
+
+
+   <div className="absolute top-2 right-0  h-full">
+  <AiChatBar  SetElements={SetElements}/>
+</div>
 
       {/* Left Color Panel */}
       <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2 px-2 py-2.5 rounded-xl"

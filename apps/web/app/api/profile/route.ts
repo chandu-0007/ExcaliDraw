@@ -6,7 +6,7 @@ export async function GET() {
   const token = (await cookies()).get("token")?.value;
 
   const response = await axios.get(
-    "http://backend:3003/profile",
+    "http://localhost:3003/profile",
     {
       headers: {
         Cookie: `token=${token}`,
