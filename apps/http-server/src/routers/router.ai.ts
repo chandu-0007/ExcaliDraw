@@ -74,5 +74,4 @@ router.post("/ai-diagram", async (req: Request, res: Response) => {
   if (!message) return res.status(429).json({ message: "All models rate limited, try again later." });
   return res.status(200).json({ message });
 });
-
 export default router;

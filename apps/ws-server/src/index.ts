@@ -2,7 +2,7 @@ import { Server, Socket } from "socket.io";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { prisma } from "@repo/db/client";
-
+import redis from "./redis";
 dotenv.config();
 
 const io = new Server(8000, {
@@ -19,7 +19,6 @@ io.use((socket, next) => {
   if (!token) {
     return next(new Error("Authentication error"));
   }
-
   try {
 
     const jwtSecret = process.env.JWT_SECRET as string;
@@ -51,14 +50,7 @@ io.on("connection", (socket: Socket) => {
 
     try {
 
-      //   const cachedRoom  = await redis?.get(`room:${roomId}`) ; 
-      //   const cachedMessages = await redis?.get(`message:${roomId}`)  ; 
-      //  if(cachedRoom && cachedMessages) return socket.emit("room-data" , {
-      //     elements : JSON.parse(cachedRoom) , 
-      //     messages : JSON.parse(cachedMessages)
-      //  })
-
-       
+      await  redis.get("")  
       const room = await prisma.room.findUnique({
         where: {
           id: roomId,
@@ -80,11 +72,7 @@ io.on("connection", (socket: Socket) => {
           userId : true 
       }})
 
-      //save it ono redis 
-
-    // await redis.set(`message:${roomId}`, JSON.stringify(messages));
-    // await redis.set(`room:${roomId}`, JSON.stringify(room.elements)); 
-      // send previous elements
+  
       socket.emit("room-data", {
         elements: room.elements,
         messages : messages        
