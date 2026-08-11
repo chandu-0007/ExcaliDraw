@@ -30,7 +30,7 @@ export default function Collaboration() {
   const strokWidth = useRef<number>(3);
 
   const SelectElement = useRef<ElementsType | null>(null);
-  // ✅ mirror to state so Ctrl+D useEffect can read it reactively
+
   const [SelectElementState, setSelectElementState] = useState<ElementsType | null>(null);
 
   const SetPoints = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -39,7 +39,7 @@ export default function Collaboration() {
   const earserRef = useRef<boolean>(false);
   const dragRef = useRef({ x: 0, y: 0 });
 
-  // ── Text tool ──────────────────────────────────────────────
+
   const [textInput, setTextInput] = useState<{
     screenX: number;
     screenY: number;
@@ -122,13 +122,11 @@ export default function Collaboration() {
     return () => clearTimeout(timeout);
   }, [elements]);
 
-  // ── Redraw canvas ──────────────────────────────────────────
   useEffect(() => {
     if (!canvasRef.current) return;
     ClearCanvas(canvasRef, elements);
   }, [elements]);
 
-  // ── Ctrl+D duplicate ───────────────────────────────────────
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key.toLowerCase() === "d") {
@@ -149,7 +147,6 @@ export default function Collaboration() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [SelectElementState, socket]);
 
-  // ── Move selected element ──────────────────────────────────
   const MoveObject = (mouseX: number, mouseY: number) => {
     if (!SelectElement.current) return;
 
@@ -178,7 +175,6 @@ export default function Collaboration() {
     socket?.emit("share-elements", { roomId: params.slug, elements: elementsRef.current });
   };
 
-  // ── Mouse handlers ─────────────────────────────────────────
   const getMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -198,7 +194,6 @@ export default function Collaboration() {
       return;
     }
 
-    // Text tool
     if (DrawingObject === "text") {
       setTextInput({
         screenX: e.clientX,
@@ -374,7 +369,6 @@ export default function Collaboration() {
     }
   };
 
-  // ── Chat ───────────────────────────────────────────────────
   const SendMessageHandler = () => {
     if (!Input.trim()) return;
     Setmessages(prev => [...prev, { Text: Input, id: generateUUID() }]);
@@ -407,9 +401,7 @@ export default function Collaboration() {
         backgroundSize: "20px 20px",
       }}
     >
-      {/* ── Top Bar ── */}
       <div className="absolute top-3 left-0 right-0 flex items-center justify-between px-4 z-50">
-        {/* Brand */}
         <div
           className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-sm font-semibold tracking-tight"
           style={{ background: "#26262c", border: "1px solid #38383f", color: "#e8e8f0", boxShadow: "0 1px 4px rgba(0,0,0,0.4)" }}
@@ -417,8 +409,6 @@ export default function Collaboration() {
           <span className="w-2 h-2 rounded-full" style={{ background: "#7c78e8" }} />
           CollabCanvas
         </div>
-
-        {/* Right — Avatar */}
         <div className="flex items-center gap-2">
           <div
             onClick={() => SetLogout(!Logout)}
@@ -578,7 +568,6 @@ export default function Collaboration() {
             <div key={child.id} className="flex flex-col gap-0.5 max-w-[82%]">
               <div className="flex px-3 py-1.5 justify-between items-center rounded-xl text-[12px] leading-relaxed text-[#e2e2e8] bg-[#2a2a3e] gap-2">
                 <span className="flex-1 break-words">{child.Text}</span>
-                {/* ✅ Delete message */}
                 <button
                   onClick={() => DeleteMessageHandler(child.id)}
                   className="text-red-400 hover:text-red-300 transition-colors flex-shrink-0 leading-none"
@@ -610,7 +599,6 @@ export default function Collaboration() {
         </div>
       </div>
 
-      {/* ── Text input overlay ── */}
       {textInput.visible && (
         <div
           ref={textDivRef}
